@@ -1,9 +1,10 @@
 ﻿
+using ByWay.Core.Contracts.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace ByWay.Core.Entities
 {
-    public class ApplicationUser : IdentityUser
+    public class ApplicationUser : IdentityUser, ITimestampEntity
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -14,5 +15,6 @@ namespace ByWay.Core.Entities
         public virtual ICollection<Cart> ShoppingCarts { get; set; } = new List<Cart>();
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
+        public string FullName => $"{FirstName} {LastName}";
     }
 }

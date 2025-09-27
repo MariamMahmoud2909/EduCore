@@ -10,6 +10,7 @@ namespace ByWay.Core.Entities
     {
         public string UserId { get; set; }
         public Guid CourseId { get; set; }
+
         public DateTime AddedAt { get; set; }
 
         public virtual ApplicationUser User { get; set; }
