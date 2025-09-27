@@ -1,0 +1,6 @@
+@ByWay_HostAddress = http://localhost:5149
+
+GET {{ByWay_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
