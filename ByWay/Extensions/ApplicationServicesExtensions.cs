@@ -1,12 +1,16 @@
 ﻿using AutoMapper;
+using ByWay.Application.Services;
+using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;
 using ByWay.Core.Entities;
 using ByWay.Core.Mappings;
 using ByWay.Infrastructure.Data;
 using ByWay.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -19,12 +23,14 @@ namespace ByWay.API.Extensions
             services.AddControllers(); 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
-            
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             //services.AddSingleton(new MapperConfiguration(cfg =>
             //{
             //    cfg.AddProfile(new MappingProfile());
             //}).CreateMapper());
-            
+            //services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
             return services;
         }
 

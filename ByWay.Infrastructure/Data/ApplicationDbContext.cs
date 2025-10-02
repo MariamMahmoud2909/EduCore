@@ -3,7 +3,6 @@ using ByWay.Core.Entities;
 using ByWay.Infrastructure.Data.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace ByWay.Infrastructure.Data
 {

@@ -90,7 +90,11 @@ namespace ByWay.API
                     Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads")),
                 RequestPath = "/uploads"
             });
+
+            app.UseHttpsRedirection();
             
+            app.UseCors("AllowAll");
+
             app.UseAuthentication();
             
             app.UseAuthorization();
