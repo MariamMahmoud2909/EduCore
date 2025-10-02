@@ -56,5 +56,10 @@ namespace ByWay.Infrastructure.Repositories
         {
             return await _dbContext.Set<T>().AnyAsync(predicate);
         }
+
+        public virtual IQueryable<T> GetQueryable()
+        {
+            return _dbContext.AsQueryable();
+        }
     }
 }

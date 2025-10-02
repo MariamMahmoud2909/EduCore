@@ -1,5 +1,5 @@
 ﻿
-namespace ByWay.Application.DTOs.AuthDto
+namespace ByWay.Core.DTOs.AuthDto
 {
     public class LoginDto
     {

@@ -1,7 +1,7 @@
 ﻿
 using ByWay.Core.Enums;
 
-namespace ByWay.Application.DTOs.CourseDto
+namespace ByWay.Core.DTOs.CourseDto
 {
     public class CreateCourseDto
     {
