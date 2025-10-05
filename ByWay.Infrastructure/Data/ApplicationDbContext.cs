@@ -3,6 +3,7 @@ using ByWay.Core.Entities;
 using ByWay.Infrastructure.Data.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace ByWay.Infrastructure.Data
 {
@@ -67,6 +68,18 @@ namespace ByWay.Infrastructure.Data
                     timestampEntity.UpdatedAt = DateTime.UtcNow;
                 }
             }
+        }
+    }
+
+    public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+    {
+        public ApplicationDbContext CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+
+            optionsBuilder.UseSqlServer("Server=.;Database=EduCore;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;");
+
+            return new ApplicationDbContext(optionsBuilder.Options);
         }
     }
 }
