@@ -1,6 +1,6 @@
 ﻿using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.DTOs.Common;
-using ByWay.Core.DTOs.CourseDto;
+using ByWay.Core.DTOs.Course;
 using ByWay.Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,12 +28,23 @@ namespace ByWay.API.Controllers
             [FromQuery] int? categoryId = null,
             [FromQuery] CourseLevel? level = null)
         {
-            var result = await _courseService.GetCoursesAsync(page, pageSize, search, minPrice, maxPrice, categoryId, level);
+            var filter = new CourseFilterParams
+            {
+                Page = page,
+                PageSize = pageSize,
+                Search = search,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                CategoryId = categoryId,
+                Level = level
+            };
+
+            var result = await _courseService.GetCoursesAsync(filter);
             return Ok(result);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<CourseDto>> GetCourse(Guid id)
+        public async Task<ActionResult<CourseDto>> GetCourse(int id)
         {
             var course = await _courseService.GetCourseByIdAsync(id);
             if (course == null)
@@ -42,7 +53,7 @@ namespace ByWay.API.Controllers
             return Ok(course);
         }
 
-        [HttpGet("top")]
+        [HttpGet("TopCourses")]
         public async Task<ActionResult<List<CourseDto>>> GetTopCourses()
         {
             var courses = await _courseService.GetTopCoursesAsync();
@@ -50,7 +61,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("{id}/similar")]
-        public async Task<ActionResult<List<CourseDto>>> GetSimilarCourses(Guid id)
+        public async Task<ActionResult<List<CourseDto>>> GetSimilarCourses(int id)
         {
             var courses = await _courseService.GetSimilarCoursesAsync(id);
             return Ok(courses);
@@ -66,7 +77,7 @@ namespace ByWay.API.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<CourseDto>> UpdateCourse(Guid id, CreateCourseDto courseDto)
+        public async Task<ActionResult<CourseDto>> UpdateCourse(int id, CreateCourseDto courseDto)
         {
             var course = await _courseService.UpdateCourseAsync(id, courseDto);
             if (course == null)
@@ -77,7 +88,7 @@ namespace ByWay.API.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> DeleteCourse(Guid id)
+        public async Task<ActionResult> DeleteCourse(int id)
         {
             var deleted = await _courseService.DeleteCourseAsync(id);
             if (!deleted)

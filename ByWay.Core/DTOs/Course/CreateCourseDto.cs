@@ -1,7 +1,6 @@
-﻿
-using ByWay.Core.Enums;
+﻿using ByWay.Core.Enums;
 
-namespace ByWay.Core.DTOs.CourseDto
+namespace ByWay.Core.DTOs.Course
 {
     public class CreateCourseDto
     {
@@ -12,6 +11,6 @@ namespace ByWay.Core.DTOs.CourseDto
         public CourseLevel Level { get; set; }
         public int Duration { get; set; }
         public int CategoryId { get; set; }
-        public Guid InstructorId { get; set; }
+        public int InstructorId { get; set; }
     }
 }

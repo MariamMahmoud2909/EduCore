@@ -17,8 +17,8 @@ namespace ByWay.Core.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public Guid CategoryId { get; set; }
-        public Guid InstructorId { get; set; }
+        public int CategoryId { get; set; }
+        public int InstructorId { get; set; }
 
         public virtual Category Category { get; set; }
         public virtual Instructor Instructor { get; set; }

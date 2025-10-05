@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ByWay.Application.Helpers;
 using ByWay.Application.Services;
 using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;
@@ -24,7 +25,14 @@ namespace ByWay.API.Extensions
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-
+            services.AddScoped<ICourseService, CourseService>();
+            services.AddScoped<IInstructorService, InstructorService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ICartService, CartService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IDashboardService, DashboardService>();
             //services.AddSingleton(new MapperConfiguration(cfg =>
             //{
             //    cfg.AddProfile(new MappingProfile());

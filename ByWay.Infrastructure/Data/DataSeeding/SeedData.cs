@@ -62,7 +62,6 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                 {
                     new Instructor
                     {
-                        Id = Guid.NewGuid(),
                         FirstName = "John",
                         LastName = "Smith",
                         Email = "john.smith@byway.com",
@@ -75,7 +74,6 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                     },
                     new Instructor
                     {
-                        Id = Guid.NewGuid(),
                         FirstName = "Sarah",
                         LastName = "Johnson",
                         Email = "sarah.johnson@byway.com",
@@ -88,7 +86,6 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                     },
                     new Instructor
                     {
-                        Id = Guid.NewGuid(),
                         FirstName = "Mike",
                         LastName = "Davis",
                         Email = "mike.davis@byway.com",
@@ -101,7 +98,6 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                     },
                     new Instructor
                     {
-                        Id = Guid.NewGuid(),
                         FirstName = "Emily",
                         LastName = "Wilson",
                         Email = "emily.wilson@byway.com",
@@ -125,7 +121,6 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                 {
                     new Course
                     {
-                        Id = Guid.NewGuid(),
                         Title = "Complete React Development",
                         Description = "Master React from basics to advanced concepts including hooks, context, and state management",
                         Price = 199.99m,
@@ -142,7 +137,6 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                     },
                     new Course
                     {
-                        Id = Guid.NewGuid(),
                         Title = "ASP.NET Core API Development",
                         Description = "Build robust APIs with ASP.NET Core, Entity Framework, and best practices",
                         Price = 249.99m,
@@ -159,7 +153,6 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                     },
                     new Course
                     {
-                        Id = Guid.NewGuid(),
                         Title = "Full Stack MERN Development",
                         Description = "Complete web development with MongoDB, Express, React, and Node.js",
                         Price = 299.99m,
@@ -176,7 +169,6 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                     },
                     new Course
                     {
-                        Id = Guid.NewGuid(),
                         Title = "UI/UX Design Fundamentals",
                         Description = "Learn design principles, user research, and prototyping with industry tools",
                         Price = 179.99m,

@@ -9,7 +9,7 @@ namespace ByWay.Core.Entities
     public class Cart : BaseEntity
     {
         public string UserId { get; set; }
-        public Guid CourseId { get; set; }
+        public int CourseId { get; set; }
 
         public DateTime AddedAt { get; set; }
 

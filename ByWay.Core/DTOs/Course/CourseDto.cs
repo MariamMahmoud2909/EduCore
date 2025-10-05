@@ -1,11 +1,10 @@
-﻿
-using ByWay.Core.Enums;
+﻿using ByWay.Core.Enums;
 
-namespace ByWay.Core.DTOs.CourseDto
+namespace ByWay.Core.DTOs.Course
 {
     public class CourseDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public decimal Price { get; set; }

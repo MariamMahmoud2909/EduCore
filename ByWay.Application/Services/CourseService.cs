@@ -2,9 +2,9 @@
 using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;
 using ByWay.Core.DTOs.Common;
-using ByWay.Core.DTOs.CourseDto;
+using ByWay.Core.DTOs.Course;
 using ByWay.Core.Entities;
-using ByWay.Core.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace ByWay.Application.Services
 {
@@ -19,121 +19,138 @@ namespace ByWay.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<PagedResult<CourseDto>> GetCoursesAsync(int page, int pageSize, string? search, decimal? minPrice, decimal? maxPrice, int? categoryId, CourseLevel? level)
+        public async Task<PagedResult<CourseDto>> GetCoursesAsync(CourseFilterParams filterParams)
         {
-            var query = _unitOfWork.Repository<Course>().GetAllAsync()
-                .Include(c => c.Category)
-                .Include(c => c.Instructor)
-                .AsQueryable();
+            var courses = await _unitOfWork.Repository<Course>().GetAllAsync(
+                query => query
+                    .Include(c => c.Category)
+                    .Include(c => c.Instructor)
+            );
 
-            if (!string.IsNullOrEmpty(search))
+            // Apply filters
+            var filteredCourses = courses.AsQueryable();
+
+            if (!string.IsNullOrEmpty(filterParams.Search))
             {
-                query = query.Where(c => c.Title.Contains(search) || c.Description.Contains(search));
+                filteredCourses = filteredCourses.Where(c =>
+                    c.Title.Contains(filterParams.Search, StringComparison.OrdinalIgnoreCase) ||
+                    c.Description.Contains(filterParams.Search, StringComparison.OrdinalIgnoreCase));
             }
 
-            if (minPrice.HasValue)
-                query = query.Where(c => c.Price >= minPrice.Value);
+            if (filterParams.MinPrice.HasValue)
+                filteredCourses = filteredCourses.Where(c => c.Price >= filterParams.MinPrice.Value);
 
-            if (maxPrice.HasValue)
-                query = query.Where(c => c.Price <= maxPrice.Value);
+            if (filterParams.MaxPrice.HasValue)
+                filteredCourses = filteredCourses.Where(c => c.Price <= filterParams.MaxPrice.Value);
+           
+            if (filterParams.CategoryId.HasValue)
+                filteredCourses = filteredCourses.Where(c => c.CategoryId == filterParams.CategoryId.Value);
 
-            if (categoryId.HasValue)
-                query = query.Where(c => c.CategoryId == categoryId.Value);
+            if (filterParams.Level.HasValue)
+                filteredCourses = filteredCourses.Where(c => c.Level == filterParams.Level.Value);
 
-            if (level.HasValue)
-                query = query.Where(c => c.Level == level.Value);
+            var totalCount = filteredCourses.Count();
 
-            var totalCount = await query.CountAsync();
-            var items = await query
+            // Apply pagination
+            var pagedCourses = filteredCourses
                 .OrderByDescending(c => c.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+                .Skip((filterParams.Page - 1) * filterParams.PageSize)
+                .Take(filterParams.PageSize)
+                .ToList();
 
-            var courseDtos = _mapper.Map<List<CourseDto>>(items);
+            var courseDtos = _mapper.Map<List<CourseDto>>(pagedCourses);
 
             return new PagedResult<CourseDto>
             {
                 Items = courseDtos,
                 TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize
+                Page = filterParams.Page,
+                PageSize = filterParams.PageSize
             };
         }
 
-        public async Task<CourseDto?> GetCourseByIdAsync(Guid id)
+        public async Task<CourseDto?> GetCourseByIdAsync(int id)
         {
-            var course = await _unitOfWork.Repository<Course>().GetQueryable()
-                .Include(c => c.Category)
-                .Include(c => c.Instructor)
-                .FirstOrDefaultAsync(c => c.Id == id);
+            var courses = await _unitOfWork.Repository<Course>().FindAsync(
+                c => c.Id == id,
+                query => query.Include(c => c.Category).Include(c => c.Instructor)
+            );
 
+            var course = courses.FirstOrDefault();
             return course == null ? null : _mapper.Map<CourseDto>(course);
         }
 
         public async Task<CourseDto> CreateCourseAsync(CreateCourseDto courseDto)
         {
             var course = _mapper.Map<Course>(courseDto);
-            course.Id = Guid.NewGuid();
             course.CreatedAt = DateTime.UtcNow;
             course.UpdatedAt = DateTime.UtcNow;
 
-            await _unitOfWork.Courses.AddAsync(course);
+            await _unitOfWork.Repository<Course>().AddAsync(course);
             await _unitOfWork.CompleteAsync();
 
-            return await GetCourseByIdAsync(course.Id);
+            return await GetCourseByIdAsync(course.Id) ?? throw new Exception("Failed to create course");
         }
 
-        public async Task<CourseDto?> UpdateCourseAsync(Guid id, CreateCourseDto courseDto)
+        public async Task<CourseDto?> UpdateCourseAsync(int id, CreateCourseDto courseDto)
         {
-            var course = await _unitOfWork.Courses.GetByIdAsync(id);
+            var courses = await _unitOfWork.Repository<Course>().FindAsync(c => c.Id == id);
+            var course = courses.FirstOrDefault();
+
             if (course == null || course.IsPurchased)
                 return null;
 
             _mapper.Map(courseDto, course);
             course.UpdatedAt = DateTime.UtcNow;
 
-            await _unitOfWork.Courses.UpdateAsync(course);
+            _unitOfWork.Repository<Course>().Update(course);
             await _unitOfWork.CompleteAsync();
 
             return await GetCourseByIdAsync(course.Id);
         }
 
-        public async Task<bool> DeleteCourseAsync(Guid id)
+        public async Task<bool> DeleteCourseAsync(int id)
         {
-            var course = await _unitOfWork.Courses.GetByIdAsync(id);
+            var courses = await _unitOfWork.Repository<Course>().FindAsync(c => c.Id == id);
+            var course = courses.FirstOrDefault();
+
             if (course == null || course.IsPurchased)
                 return false;
 
-            await _unitOfWork.Courses.DeleteAsync(course);
+            _unitOfWork.Repository<Course>().Delete(course);
             await _unitOfWork.CompleteAsync();
             return true;
         }
 
-        public async Task<List<CourseDto>> GetTopCoursesAsync()
+        public async Task<List<CourseDto>> GetTopCoursesAsync(int count = 6)
         {
-            var courses = await _unitOfWork.Courses.GetQueryable()
-                .Include(c => c.Category)
-                .Include(c => c.Instructor)
-                .OrderByDescending(c => c.Rating)
-                .Take(6)
-                .ToListAsync();
+            var courses = await _unitOfWork.Repository<Course>().GetAllAsync(
+                query => query
+                    .Include(c => c.Category)
+                    .Include(c => c.Instructor)
+                    .OrderByDescending(c => c.Rating)
+                    .Take(count)
+            );
 
             return _mapper.Map<List<CourseDto>>(courses);
         }
 
-        public async Task<List<CourseDto>> GetSimilarCoursesAsync(Guid courseId, int count = 4)
+        public async Task<List<CourseDto>> GetSimilarCoursesAsync(int courseId, int count = 4)
         {
-            var course = await _unitOfWork.Courses.GetByIdAsync(courseId);
-            if (course == null) return new List<CourseDto>();
+            var targetCourses = await _unitOfWork.Repository<Course>().FindAsync(c => c.Id == courseId);
+            var targetCourse = targetCourses.FirstOrDefault();
 
-            var similarCourses = await _unitOfWork.Courses.GetQueryable()
-                .Include(c => c.Category)
-                .Include(c => c.Instructor)
-                .Where(c => c.CategoryId == course.CategoryId && c.Id != courseId)
-                .OrderByDescending(c => c.CreatedAt)
-                .Take(count)
-                .ToListAsync();
+            if (targetCourse == null)
+                return new List<CourseDto>();
+
+            var similarCourses = await _unitOfWork.Repository<Course>().GetAllAsync(
+                query => query
+                    .Include(c => c.Category)
+                    .Include(c => c.Instructor)
+                    .Where(c => c.CategoryId == targetCourse.CategoryId && c.Id != courseId)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Take(count)
+            );
 
             return _mapper.Map<List<CourseDto>>(similarCourses);
         }

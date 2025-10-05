@@ -1,5 +1,4 @@
-﻿
-namespace ByWay.Core.Contracts.Interfaces
+﻿namespace ByWay.Core.Contracts.Interfaces
 {
     public interface ITimestampEntity
     {
