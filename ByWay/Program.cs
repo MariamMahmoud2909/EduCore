@@ -1,5 +1,9 @@
 
 using ByWay.API.Extensions;
+using ByWay.Core.Entities;
+using ByWay.Infrastructure.Data;
+using ByWay.Infrastructure.Data.DataSeeding;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 
@@ -7,7 +11,7 @@ namespace ByWay.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -86,7 +90,11 @@ namespace ByWay.API
                     Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads")),
                 RequestPath = "/uploads"
             });
+
+            app.UseHttpsRedirection();
             
+            app.UseCors("AllowAll");
+
             app.UseAuthentication();
             
             app.UseAuthorization();
@@ -95,7 +103,15 @@ namespace ByWay.API
             {
                 endpoints.MapControllers();
             });
-            
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                await SeedData.Initialize(context, userManager, roleManager);
+            }
+
             app.Run();
         }
     }
