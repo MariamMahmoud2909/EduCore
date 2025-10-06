@@ -1,5 +1,7 @@
 ﻿using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.DTOs.AuthDto;
+using ByWay.Core.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ByWay.API.Controllers
@@ -9,10 +11,11 @@ namespace ByWay.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-
-        public AuthController(IAuthService authService)
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        public AuthController(IAuthService authService, SignInManager<ApplicationUser> signInManager)
         {
             _authService = authService;
+            _signInManager = signInManager;
         }
 
         [HttpPost("login")]
@@ -36,6 +39,13 @@ namespace ByWay.API.Controllers
                 return BadRequest("User already exists or registration failed");
 
             return Ok(result);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok(new { result = "Logged out" });
         }
     }
 }
