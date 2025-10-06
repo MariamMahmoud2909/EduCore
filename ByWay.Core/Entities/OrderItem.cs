@@ -1,5 +1,4 @@
-﻿
-namespace ByWay.Core.Entities
+﻿namespace ByWay.Core.Entities
 {
     public class OrderItem : BaseEntity
     {

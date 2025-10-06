@@ -1,5 +1,4 @@
-﻿
-namespace ByWay.Core.DTOs.Category
+﻿namespace ByWay.Core.DTOs.Category
 {
     public class CategoryDto
     {

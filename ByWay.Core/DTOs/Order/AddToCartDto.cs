@@ -1,5 +1,4 @@
-﻿
-namespace ByWay.Core.DTOs.Order
+﻿namespace ByWay.Core.DTOs.Order
 {
     public class AddToCartDto
     {

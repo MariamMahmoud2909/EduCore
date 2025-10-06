@@ -1,5 +1,4 @@
-﻿
-namespace ByWay.Core.Enums
+﻿namespace ByWay.Core.Enums
 {
     public enum OrderStatus
     {

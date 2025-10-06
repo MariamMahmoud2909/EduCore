@@ -1,7 +1,6 @@
 ﻿using ByWay.Application.Helpers;
 using ByWay.Core.DTOs.Common;
 using ByWay.Core.DTOs.InstructorDto;
-using ByWay.Core.Enums;
 
 namespace ByWay.Core.Contracts.Interfaces
 {
