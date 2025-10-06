@@ -31,6 +31,7 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     EmailConfirmed = true
+
                 };
 
                 var result = await userManager.CreateAsync(adminUser, "Admin123!");
