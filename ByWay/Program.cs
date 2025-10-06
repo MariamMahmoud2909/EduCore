@@ -5,6 +5,7 @@ using ByWay.Infrastructure.Data.DataSeeding;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
+using Microsoft.IdentityModel.Logging;
 
 namespace ByWay.API
 {
@@ -22,29 +23,34 @@ namespace ByWay.API
             builder.Services.AddOpenApi();
             builder.Services.AddSwaggerGen(c =>
             {
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            {
-                Description = "JWT Authorization header using the Bearer scheme",
-                Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
-            });
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "ByWay", Version = "v1" });
+                c.UseInlineDefinitionsForEnums();
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    new OpenApiSecurityScheme
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter 'Bearer' [space] and then your valid token.\n\nExample: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI..."
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
                     {
-                        Reference = new OpenApiReference
+                        new OpenApiSecurityScheme
                         {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                new string[] {}
-            }
-        });
-    });
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+            });
+
+            IdentityModelEventSource.ShowPII = true;
 
             var app = builder.Build();
             

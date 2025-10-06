@@ -46,7 +46,10 @@ namespace ByWay.Application.Services
         {
             var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
             if (existingUser != null)
+            {
+                Console.WriteLine("Existing user found in DB");
                 return null;
+            }
 
             var user = new ApplicationUser
             {
@@ -60,7 +63,10 @@ namespace ByWay.Application.Services
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
+            {
+                Console.WriteLine("User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description)));
                 return null;
+            }
 
             await _userManager.AddToRoleAsync(user, "User");
 
@@ -68,6 +74,7 @@ namespace ByWay.Application.Services
             await _emailService.SendWelcomeEmailAsync(user.Email, user.FirstName);
 
             var token = GenerateJwtToken(user);
+            Console.WriteLine($"Generated token: {token}");
 
             return new AuthResponseDto
             {
@@ -83,7 +90,7 @@ namespace ByWay.Application.Services
         public string GenerateJwtToken(ApplicationUser user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!);
 
             var claims = new List<Claim>
             {
@@ -100,10 +107,10 @@ namespace ByWay.Application.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(15),
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"],
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);

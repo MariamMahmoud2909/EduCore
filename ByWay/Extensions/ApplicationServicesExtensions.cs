@@ -71,7 +71,26 @@ namespace ByWay.API.Extensions
                                 ValidIssuer = configuration["Jwt:Issuer"],
                                 ValidAudience = configuration["Jwt:Audience"],
                                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
-                                RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                                RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+                                ClockSkew = TimeSpan.Zero
+
+                            };
+
+                            options.Events = new JwtBearerEvents
+                            {
+                                OnMessageReceived = context =>
+                                {
+                                    var token = context.Token;
+                                    Console.WriteLine($"Received token: {token}");
+                                    Console.WriteLine($"Token length: {token?.Length}");
+                                    return Task.CompletedTask;
+                                },
+                                OnAuthenticationFailed = context =>
+                                {
+                                    Console.WriteLine($"Authentication Failed: {context.Exception}");
+                                    Console.WriteLine($"Exception Details: {context.Exception.StackTrace}");
+                                    return Task.CompletedTask;
+                                }
                             };
                         });
             return services;
