@@ -3,6 +3,7 @@ using ByWay.Application.Helpers;
 using ByWay.Application.Services;
 using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;
+using ByWay.Core.Contracts.Services;
 using ByWay.Core.Entities;
 using ByWay.Core.Mappings;
 using ByWay.Infrastructure.Data;
@@ -33,12 +34,13 @@ namespace ByWay.API.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IDashboardService, DashboardService>();
-            services.AddAutoMapper(typeof(MappingProfile));
+            services.AddScoped<IUserService, UserService>();
+            //services.AddAutoMapper(typeof(MappingProfile));
             //services.AddSingleton(new MapperConfiguration(cfg =>
             //{
             //    cfg.AddProfile(new MappingProfile());
             //}).CreateMapper());
-            //services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             return services;
         }
