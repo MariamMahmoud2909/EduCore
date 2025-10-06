@@ -1,5 +1,4 @@
-﻿
-namespace ByWay.Core.DTOs.AuthDto
+﻿namespace ByWay.Core.DTOs.AuthDto
 {
     public class RegisterDto
     {

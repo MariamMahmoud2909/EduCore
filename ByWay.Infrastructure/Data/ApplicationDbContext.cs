@@ -3,7 +3,6 @@ using ByWay.Core.Entities;
 using ByWay.Infrastructure.Data.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace ByWay.Infrastructure.Data
 {
@@ -26,7 +25,7 @@ namespace ByWay.Infrastructure.Data
             builder.Entity<ApplicationUser>().ToTable("Users");
             builder.Entity<Microsoft.AspNetCore.Identity.IdentityRole>().ToTable("Roles");
             builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<string>>().ToTable("UserRoles");
-            builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<string>>().ToTable("UserClaims");
+            builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<string>>().ToTable("User");
             builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<string>>().ToTable("UserLogins");
             builder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<string>>().ToTable("UserTokens");
             builder.Entity<Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>>().ToTable("RoleClaims");
@@ -70,16 +69,4 @@ namespace ByWay.Infrastructure.Data
             }
         }
     }
-
-    //public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
-    //{
-    //    public ApplicationDbContext CreateDbContext(string[] args)
-    //    {
-    //        var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-
-    //        optionsBuilder.UseSqlServer("Server=.;Database=EduCore;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;");
-
-    //        return new ApplicationDbContext(optionsBuilder.Options);
-    //    }
-    //}
 }
