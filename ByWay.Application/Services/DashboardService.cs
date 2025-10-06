@@ -1,5 +1,4 @@
-﻿
-using ByWay.Core.Contracts.Interfaces;
+﻿using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;
 using ByWay.Core.DTOs.Dashboard;
 using ByWay.Core.Entities;

@@ -1,5 +1,4 @@
-﻿
-using ByWay.Core.Contracts.Interfaces;
+﻿using ByWay.Core.Contracts.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace ByWay.Core.Entities

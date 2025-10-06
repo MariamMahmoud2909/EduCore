@@ -1,5 +1,4 @@
-﻿
-namespace ByWay.Core.DTOs.Common
+﻿namespace ByWay.Core.DTOs.Common
 {
     public class PagedResult<T>
     {

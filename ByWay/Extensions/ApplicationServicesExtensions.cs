@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ByWay.Application.Helpers;
+﻿using ByWay.Application.Helpers;
 using ByWay.Application.Services;
 using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;
@@ -9,10 +8,8 @@ using ByWay.Core.Mappings;
 using ByWay.Infrastructure.Data;
 using ByWay.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -35,12 +32,10 @@ namespace ByWay.API.Extensions
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IUserService, UserService>();
-            //services.AddAutoMapper(typeof(MappingProfile));
-            //services.AddSingleton(new MapperConfiguration(cfg =>
-            //{
-            //    cfg.AddProfile(new MappingProfile());
-            //}).CreateMapper());
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<MappingProfile>();
+            });
 
             return services;
         }

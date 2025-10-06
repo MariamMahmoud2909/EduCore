@@ -1,5 +1,4 @@
-﻿
-using ByWay.Core.Enums;
+﻿using ByWay.Core.Enums;
 
 namespace ByWay.Core.DTOs.InstructorDto
 {

@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using ByWay.Application.Helpers;
 using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;

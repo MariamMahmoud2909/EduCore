@@ -1,4 +1,3 @@
-
 using ByWay.API.Extensions;
 using ByWay.Core.Entities;
 using ByWay.Infrastructure.Data;
