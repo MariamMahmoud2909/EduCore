@@ -21,6 +21,7 @@ namespace ByWay.Infrastructure.Data
             builder.ApplyConfiguration(new CartConfiguration());
             builder.ApplyConfiguration(new OrderConfiguration());
             builder.ApplyConfiguration(new OrderItemConfiguration());
+            builder.ApplyConfiguration(new ReviewConfiguration());
 
             builder.Entity<ApplicationUser>().ToTable("Users");
             builder.Entity<Microsoft.AspNetCore.Identity.IdentityRole>().ToTable("Roles");
@@ -37,7 +38,11 @@ namespace ByWay.Infrastructure.Data
         public DbSet<Cart> Carts { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
-
+        public DbSet<Review> Reviews { get; set; }
+        public DbSet<Enrollment> Enrollments { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
+        public DbSet<Activity> Activities { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

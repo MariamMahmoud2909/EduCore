@@ -28,6 +28,7 @@ namespace ByWay.Core.Entities
         public virtual Instructor Instructor { get; set; }
         public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
         public string LevelName => Level switch
         {

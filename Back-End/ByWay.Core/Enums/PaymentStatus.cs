@@ -1,10 +1,10 @@
 ﻿namespace ByWay.Core.Enums
 {
-    public enum OrderStatus
+    public enum PaymentStatus
     {
         Pending = 1,
-        Completed = 2,
-        Cancelled = 3,
+        Succeeded = 2,
+        Failed = 3,
         Refunded = 4,
         Processing = 5
     }
