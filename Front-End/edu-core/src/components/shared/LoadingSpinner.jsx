@@ -1,14 +1,21 @@
 import React from 'react';
-import './LoadingSpinner.css';
+import { Spinner } from 'react-bootstrap';
 
 const LoadingSpinner = ({ size = 'md', fullScreen = false }) => {
-  const content = (
-    <div className={`spinner-container ${fullScreen ? 'fullscreen' : ''}`}>
-      <div className={`spinner ${size}`}></div>
-    </div>
-  );
+  if (fullScreen) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh'
+      }}>
+        <Spinner animation="border" variant="primary" />
+      </div>
+    );
+  }
 
-  return content;
+  return <Spinner animation="border" size={size} variant="primary" />;
 };
 
 export default LoadingSpinner;

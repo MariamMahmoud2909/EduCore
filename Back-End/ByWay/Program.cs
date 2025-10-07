@@ -50,10 +50,22 @@ namespace ByWay.API
                 });
             });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod()
+                              .AllowCredentials();
+                    });
+            });
+
             IdentityModelEventSource.ShowPII = true;
 
             var app = builder.Build();
-            
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -84,7 +96,9 @@ namespace ByWay.API
             });
             
             app.UseHttpsRedirection();
-            
+
+            app.UseCors("AllowFrontend");
+
             app.UseRouting();
             
             app.UseStaticFiles();

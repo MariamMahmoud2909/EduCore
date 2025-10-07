@@ -1,33 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { FiSearch, FiFilter, FiX } from 'react-icons/fi';
-import CourseCard from '../components/shared/CategoryCard';
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { useAtom } from 'jotai';
+import { motion } from 'framer-motion';
+import { FiSearch, FiFilter } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import CourseCard from '../components/courses/CourseCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
+import Pagination from '../components/shared/Pagination';
 import { courseService, categoryService } from '../services/api';
+import { 
+  searchQueryAtom, 
+  selectedCategoryAtom, 
+  sortByAtom,
+  currentPageAtom,
+  itemsPerPageAtom 
+} from '../store/atoms';
 import './CoursesPage.css';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    search: '',
-    categoryId: '',
-    level: '',
-    minPrice: '',
-    maxPrice: '',
-    page: 1,
-    pageSize: 12
-  });
   const [totalPages, setTotalPages] = useState(1);
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [totalCourses, setTotalCourses] = useState(0);
+  
+  const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
+  const [selectedCategory, setSelectedCategory] = useAtom(selectedCategoryAtom);
+  const [sortBy, setSortBy] = useAtom(sortByAtom);
+  const [currentPage, setCurrentPage] = useAtom(currentPageAtom);
+  const [itemsPerPage] = useAtom(itemsPerPageAtom);
+  
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [showFilters, setShowFilters] = useState(true);
 
+  // Fetch categories on mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // Fetch courses when filters change
   useEffect(() => {
     fetchCourses();
-  }, [filters]);
+  }, [searchQuery, selectedCategory, sortBy, currentPage, priceRange]);
 
   const fetchCategories = async () => {
     try {
@@ -35,6 +49,7 @@ const CoursesPage = () => {
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      toast.error('Failed to load categories');
     }
   };
 
@@ -42,224 +57,240 @@ const CoursesPage = () => {
     setLoading(true);
     try {
       const params = {
-        page: filters.page,
-        pageSize: filters.pageSize,
-        search: filters.search || undefined,
-        categoryId: filters.categoryId || undefined,
-        level: filters.level || undefined,
-        minPrice: filters.minPrice || undefined,
-        maxPrice: filters.maxPrice || undefined
+        page: currentPage,
+        pageSize: itemsPerPage,
+        search: searchQuery || undefined,
+        categoryId: (selectedCategory && selectedCategory !== 'All') ? selectedCategory : undefined,
+        sortBy: sortBy,
+        minPrice: priceRange.min,
+        maxPrice: priceRange.max,
       };
 
+      Object.keys(params).forEach(key => 
+      (params[key] === undefined || params[key] === '') && delete params[key]
+    );
       const response = await courseService.getCourses(params);
-      setCourses(response.data.items);
-      setTotalPages(response.data.totalPages);
+      
+      // Handle different response structures
+      if (response.data.items) {
+        // Paginated response
+        setCourses(response.data.items);
+        setTotalPages(response.data.totalPages || 1);
+        setTotalCourses(response.data.totalCount || 0);
+      } else if (Array.isArray(response.data)) {
+        // Direct array response
+        setCourses(response.data);
+        setTotalPages(1);
+        setTotalCourses(response.data.length);
+      } else {
+        setCourses([]);
+      }
     } catch (error) {
       console.error('Error fetching courses:', error);
+      toast.error('Failed to load courses. Please try again.');
+      setCourses([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (field, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [field]: value,
-      page: 1
-    }));
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchCourses();
   };
 
-  const handleClearFilters = () => {
-    setFilters({
-      search: '',
-      categoryId: '',
-      level: '',
-      minPrice: '',
-      maxPrice: '',
-      page: 1,
-      pageSize: 12
-    });
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
+    setCurrentPage(1);
   };
 
-  const handlePageChange = (page) => {
-    setFilters(prev => ({ ...prev, page }));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePriceRangeChange = () => {
+    setCurrentPage(1);
+    fetchCourses();
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory(null);
+    setSortBy('popular');
+    setPriceRange({ min: 0, max: 1000 });
+    setCurrentPage(1);
   };
 
   return (
     <div className="courses-page">
-      <div className="container">
-        {/* Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">Explore Courses</h1>
-          <p className="page-subtitle">
-            Discover thousands of courses taught by expert instructors
-          </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="search-bar">
-          <div className="search-input-wrapper">
-            <FiSearch className="search-icon" />
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search for courses..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-            />
-          </div>
-          <button 
-            className="filter-toggle-btn mobile-only"
-            onClick={() => setShowMobileFilters(!showMobileFilters)}
+      <div className="courses-hero">
+        <Container>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <FiFilter /> Filters
-          </button>
-        </div>
+            <h1 className="page-title">Explore Our Courses</h1>
+            <p className="page-subtitle">
+              Discover {totalCourses} courses from expert instructors
+            </p>
 
-        <div className="courses-layout">
-          {/* Filters Sidebar */}
-          <aside className={`filters-sidebar ${showMobileFilters ? 'show' : ''}`}>
-            <div className="filters-header">
-              <h3>Filters</h3>
-              <button 
-                className="clear-filters-btn"
-                onClick={handleClearFilters}
-              >
-                Clear All
-              </button>
-              <button 
-                className="close-filters-btn mobile-only"
-                onClick={() => setShowMobileFilters(false)}
-              >
-                <FiX />
-              </button>
-            </div>
-
-            {/* Category Filter */}
-            <div className="filter-group">
-              <label className="filter-label">Category</label>
-              <select
-                className="filter-select"
-                value={filters.categoryId}
-                onChange={(e) => handleFilterChange('categoryId', e.target.value)}
-              >
-                <option value="">All Categories</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Level Filter */}
-            <div className="filter-group">
-              <label className="filter-label">Level</label>
-              <select
-                className="filter-select"
-                value={filters.level}
-                onChange={(e) => handleFilterChange('level', e.target.value)}
-              >
-                <option value="">All Levels</option>
-                <option value="1">Beginner</option>
-                <option value="2">Intermediate</option>
-                <option value="3">Expert</option>
-              </select>
-            </div>
-
-            {/* Price Range */}
-            <div className="filter-group">
-              <label className="filter-label">Price Range</label>
-              <div className="price-inputs">
-                <input
-                  type="number"
-                  className="price-input"
-                  placeholder="Min"
-                  value={filters.minPrice}
-                  onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+            {/* Search Bar */}
+            <Form onSubmit={handleSearch} className="search-form">
+              <div className="search-input-wrapper">
+                <FiSearch className="search-icon" />
+                <Form.Control
+                  type="text"
+                  placeholder="Search for courses..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input"
                 />
-                <span>-</span>
-                <input
-                  type="number"
-                  className="price-input"
-                  placeholder="Max"
-                  value={filters.maxPrice}
-                  onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                />
+                <Button type="submit" variant="primary">
+                  Search
+                </Button>
               </div>
-            </div>
-          </aside>
+            </Form>
+          </motion.div>
+        </Container>
+      </div>
 
-          {/* Courses Grid */}
-          <div className="courses-content">
-            {/* Results Count */}
-            <div className="results-header">
-              <p className="results-count">
-                Showing {courses.length} of {totalPages * filters.pageSize} courses
-              </p>
-            </div>
+      <Container className="courses-content">
+        <Row>
+          {/* Filters Sidebar */}
+          <Col lg={3}>
+            <motion.div
+              className="filters-sidebar"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="filters-header">
+                <h3>
+                  <FiFilter /> Filters
+                </h3>
+                <Button 
+                  variant="link" 
+                  size="sm"
+                  onClick={clearFilters}
+                >
+                  Clear All
+                </Button>
+              </div>
 
-            {loading ? (
-              <LoadingSpinner />
-            ) : courses.length > 0 ? (
-              <>
-                <div className="courses-grid">
-                  {courses.map((course, index) => (
-                    <CourseCard key={course.id} course={course} delay={index * 0.05} />
+              {/* Categories */}
+              <div className="filter-section">
+                <h4>Categories</h4>
+                <div className="category-list">
+                  {categories.map((category) => (
+                    <Form.Check
+                      key={category.id}
+                      type="checkbox"
+                      id={`category-${category.id}`}
+                      label={`${category.name} (${category.courseCount || 0})`}
+                      checked={selectedCategory === category.id}
+                      onChange={() => handleCategoryChange(category.id)}
+                    />
                   ))}
                 </div>
+              </div>
+
+              {/* Price Range */}
+              <div className="filter-section">
+                <h4>Price Range</h4>
+                <Form.Group className="mb-3">
+                  <Form.Label>Min: ${priceRange.min}</Form.Label>
+                  <Form.Range
+                    min="0"
+                    max="1000"
+                    step="10"
+                    value={priceRange.min}
+                    onChange={(e) => setPriceRange({ ...priceRange, min: parseInt(e.target.value) })}
+                    onMouseUp={handlePriceRangeChange}
+                  />
+                </Form.Group>
+                <Form.Group>
+                  <Form.Label>Max: ${priceRange.max}</Form.Label>
+                  <Form.Range
+                    min="0"
+                    max="1000"
+                    step="10"
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange({ ...priceRange, max: parseInt(e.target.value) })}
+                    onMouseUp={handlePriceRangeChange}
+                  />
+                </Form.Group>
+              </div>
+            </motion.div>
+          </Col>
+
+          {/* Courses Grid */}
+          <Col lg={9}>
+            {/* Sort Bar */}
+            <div className="sort-bar">
+              <p className="results-count">
+                Showing {courses.length} of {totalCourses} courses
+              </p>
+              <Form.Select 
+                value={sortBy} 
+                onChange={handleSortChange}
+                className="sort-select"
+              >
+                <option value="popular">Most Popular</option>
+                <option value="newest">Newest First</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+              </Form.Select>
+            </div>
+
+            {/* Loading State */}
+            {loading ? (
+              <LoadingSpinner />
+            ) : courses.length === 0 ? (
+              <motion.div
+                className="no-results"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <h3>No courses found</h3>
+                <p>Try adjusting your filters or search query</p>
+                <Button onClick={clearFilters}>Clear Filters</Button>
+              </motion.div>
+            ) : (
+              <>
+                {/* Courses Grid */}
+                <Row className="g-4">
+                  {courses.map((course, index) => (
+                    <Col key={course.id} lg={4} md={6}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                      >
+                        <CourseCard course={course} />
+                      </motion.div>
+                    </Col>
+                  ))}
+                </Row>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="pagination">
-                    <button
-                      className="pagination-btn"
-                      disabled={filters.page === 1}
-                      onClick={() => handlePageChange(filters.page - 1)}
-                    >
-                      Previous
-                    </button>
-
-                    <div className="pagination-numbers">
-                      {[...Array(totalPages)].map((_, index) => (
-                        <button
-                          key={index + 1}
-                          className={`pagination-number ${filters.page === index + 1 ? 'active' : ''}`}
-                          onClick={() => handlePageChange(index + 1)}
-                        >
-                          {index + 1}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      className="pagination-btn"
-                      disabled={filters.page === totalPages}
-                      onClick={() => handlePageChange(filters.page + 1)}
-                    >
-                      Next
-                    </button>
+                  <div className="mt-5">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setCurrentPage}
+                    />
                   </div>
                 )}
               </>
-            ) : (
-              <div className="no-results">
-                <p>No courses found matching your criteria</p>
-                <button className="btn btn-primary" onClick={handleClearFilters}>
-                  Clear Filters
-                </button>
-              </div>
             )}
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Filters Overlay */}
-      {showMobileFilters && (
-        <div 
-          className="filters-overlay mobile-only"
-          onClick={() => setShowMobileFilters(false)}
-        />
-      )}
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 };

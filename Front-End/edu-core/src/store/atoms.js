@@ -10,6 +10,15 @@ export const isAuthenticatedAtom = atom((get) => get(userAtom) !== null);
 export const isAdminAtom = atom((get) => get(userAtom)?.isAdmin || false);
 export const tokenAtom = atom(localStorage.getItem('token') || null);
 
+// Pagination
+export const currentPageAtom = atom(1);
+export const itemsPerPageAtom = atom(6);
+
+// Courses filtering & sorting
+export const searchQueryAtom = atom("");           // what user types in search bar
+export const selectedCategoryAtom = atom("All");   // selected course category
+export const sortByAtom = atom("Newest");          // or "Popular", "Price", etc.
+
 // Cart State
 export const cartAtom = atom([]);
 export const cartCountAtom = atom((get) => get(cartAtom).length);

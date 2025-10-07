@@ -1,42 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Button, Card, Nav, Tab } from 'react-bootstrap';
 import { useAtom } from 'jotai';
 import { motion } from 'framer-motion';
-import { Container, Row, Col, Button, Badge } from 'react-bootstrap';
-import { FiStar, FiClock, FiUsers, FiAward, FiShoppingCart, FiShare2 } from 'react-icons/fi';
-import { FaFacebook, FaTwitter, FaLinkedin, FaWhatsapp } from 'react-icons/fa';
+import { 
+  FiClock, FiUsers, FiStar, FiBookOpen, FiAward, 
+  FiShoppingCart, FiCheck, FiPlay 
+} from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { courseService, cartService } from '../services/api';
-import { cartAtom, userAtom } from '../store/atoms';
-import CourseCard from '../components/shared/CategoryCard';
+import { userAtom, cartAtom, isAuthenticatedAtom } from '../store/atoms';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
+import CourseCard from '../components/courses/CourseCard';
 import './CourseDetailPage.css';
 
 const CourseDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [user] = useAtom(userAtom);
+  const [cart, setCart] = useAtom(cartAtom);
+  const [isAuthenticated] = useAtom(isAuthenticatedAtom);
+  
   const [course, setCourse] = useState(null);
   const [similarCourses, setSimilarCourses] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cart, setCart] = useAtom(cartAtom);
-  const [user] = useAtom(userAtom);
-  const navigate = useNavigate();
-
-  const isInCart = cart.some(item => item.id === course?.id);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      fetchCourse();
-      fetchSimilarCourses();
-    }
+    fetchCourseDetails();
+    fetchSimilarCourses();
+    fetchReviews();
   }, [id]);
 
-  const fetchCourse = async () => {
+  const fetchCourseDetails = async () => {
+    setLoading(true);
     try {
       const response = await courseService.getCourse(id);
       setCourse(response.data);
     } catch (error) {
       console.error('Error fetching course:', error);
-      toast.error('Failed to load course');
+      toast.error('Failed to load course details');
+      navigate('/courses');
     } finally {
       setLoading(false);
     }
@@ -45,79 +50,75 @@ const CourseDetailPage = () => {
   const fetchSimilarCourses = async () => {
     try {
       const response = await courseService.getSimilarCourses(id);
-      setSimilarCourses(response.data);
+      setSimilarCourses(response.data || []);
     } catch (error) {
       console.error('Error fetching similar courses:', error);
     }
   };
 
-  const addToCart = async () => {
-    if (!user) {
+  const fetchReviews = async () => {
+    try {
+      const response = await reviewService.getCourseReviews(id, { page: 1, pageSize: 10 });
+      setReviews(response.data.items || response.data || []);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
       toast.info('Please login to add courses to cart');
       navigate('/login');
       return;
     }
 
+    setAddingToCart(true);
     try {
-      await cartService.addToCart(course.id);
-      setCart(prev => [...prev, course]);
+      await cartService.addToCart(id);
+      
+      // Update local cart state
+      setCart([...cart, { ...course, courseId: id }]);
+      
       toast.success('Course added to cart!');
     } catch (error) {
-      toast.error('Failed to add course to cart');
+      console.error('Error adding to cart:', error);
+      if (error.response?.status === 400) {
+        toast.warning('Course already in cart');
+      } else {
+        toast.error('Failed to add course to cart');
+      }
+    } finally {
+      setAddingToCart(false);
     }
   };
 
-  const buyNow = () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    
-    if (!isInCart) {
-      addToCart();
-    }
-    navigate('/cart');
+  const isInCart = () => {
+    return cart.some(item => 
+      item.id === parseInt(id) || item.courseId === parseInt(id)
+    );
   };
 
-  const shareOnSocial = (platform) => {
-    const url = window.location.href;
-    const text = `Check out this course: ${course.title}`;
-    
-    const shareUrls = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-      twitter: `https://twitter.com/intent/tweet?url=${url}&text=${text}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
-      whatsapp: `https://wa.me/?text=${text} ${url}`
-    };
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
 
-    window.open(shareUrls[platform], '_blank', 'width=600,height=400');
-  };
-
-  const getLevelBadgeVariant = () => {
-    switch(course?.level) {
-      case 1: return 'success';
-      case 2: return 'warning';
-      case 3: return 'danger';
-      default: return 'primary';
-    }
-  };
-
-  const getLevelName = () => {
-    switch(course?.level) {
-      case 1: return 'Beginner';
-      case 2: return 'Intermediate';
-      case 3: return 'Expert';
-      default: return 'Unknown';
-    }
-  };
-
-  if (loading) return <LoadingSpinner fullScreen />;
-  if (!course) return <div className="container py-5 text-center"><h2>Course not found</h2></div>;
+  if (!course) {
+    return (
+      <Container className="text-center py-5">
+        <h2>Course not found</h2>
+        <Button onClick={() => navigate('/courses')}>Back to Courses</Button>
+      </Container>
+    );
+  }
 
   return (
     <div className="course-detail-page">
-      {/* Course Header */}
-      <section className="course-header">
+      {/* Hero Section */}
+      <div className="course-hero" style={{
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${course.imageUrl || 'https://via.placeholder.com/1200x400'})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}>
         <Container>
           <Row>
             <Col lg={8}>
@@ -126,178 +127,279 @@ const CourseDetailPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                <Badge bg={getLevelBadgeVariant()} className="mb-3">
-                  {getLevelName()}
-                </Badge>
-                <h1 className="course-detail-title">{course.title}</h1>
-                <p className="course-detail-description">{course.description}</p>
+                <div className="course-category-badge">
+                  {course.category?.name || course.categoryName || 'General'}
+                </div>
+                <h1 className="course-title">{course.title}</h1>
+                <p className="course-description">{course.description}</p>
                 
-                <div className="course-detail-meta">
+                <div className="course-meta">
                   <div className="meta-item">
                     <FiStar className="text-warning" />
-                    <span>{course.rating.toFixed(1)} Rating</span>
+                    <span>{course.rating?.toFixed(1) || '4.5'}</span>
+                    <span className="text-muted">({course.reviewsCount || 0} reviews)</span>
                   </div>
                   <div className="meta-item">
                     <FiUsers />
-                    <span>1,234 Students</span>
+                    <span>{course.enrolledStudents || course.studentsCount || 0} students</span>
                   </div>
                   <div className="meta-item">
                     <FiClock />
-                    <span>{course.duration} hours</span>
-                  </div>
-                  <div className="meta-item">
-                    <FiAward />
-                    <span>Certificate</span>
+                    <span>{course.duration || '10'} hours</span>
                   </div>
                 </div>
 
                 <div className="course-instructor">
-                  <strong>Instructor:</strong> {course.instructorName}
+                  <img 
+                    src={course.instructor?.imageUrl || 'https://via.placeholder.com/50'} 
+                    alt={course.instructor?.name || course.instructorName}
+                    className="instructor-avatar"
+                  />
+                  <div>
+                    <p className="mb-0">Created by</p>
+                    <h5>{course.instructor?.name || course.instructorName || 'Expert Instructor'}</h5>
+                  </div>
                 </div>
               </motion.div>
             </Col>
           </Row>
         </Container>
-      </section>
+      </div>
 
-      {/* Course Content */}
-      <Container className="py-5">
+      <Container className="course-content">
         <Row>
+          {/* Main Content */}
           <Col lg={8}>
-            {/* Course Image */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="mb-4"
-            >
-              <img 
-                src={course.image || 'https://via.placeholder.com/800x450/1E3A8A/FFFFFF?text=Course'} 
-                alt={course.title}
-                className="course-detail-image"
-              />
-            </motion.div>
+            <Tab.Container defaultActiveKey="overview">
+              <Nav variant="tabs" className="course-tabs">
+                <Nav.Item>
+                  <Nav.Link eventKey="overview">Overview</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="curriculum">Curriculum</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="instructor">Instructor</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="reviews">Reviews</Nav.Link>
+                </Nav.Item>
+              </Nav>
 
-            {/* What You'll Learn */}
-            <div className="content-section mb-4">
-              <h3 className="section-title">What You'll Learn</h3>
-              <ul className="learning-list">
-                <li>Master the fundamentals and advanced concepts</li>
-                <li>Build real-world projects from scratch</li>
-                <li>Understand best practices and industry standards</li>
-                <li>Get hands-on experience with modern tools</li>
-                <li>Learn problem-solving techniques</li>
-                <li>Gain confidence to work on professional projects</li>
-              </ul>
-            </div>
+              <Tab.Content className="mt-4">
+                {/* Overview Tab */}
+                <Tab.Pane eventKey="overview">
+                  <Card className="content-card">
+                    <Card.Body>
+                      <h3>What you'll learn</h3>
+                      <Row className="g-3">
+                        {(course.learningObjectives || [
+                          'Master the fundamentals',
+                          'Build real-world projects',
+                          'Understand advanced concepts',
+                          'Get job-ready skills'
+                        ]).map((objective, index) => (
+                          <Col md={6} key={index}>
+                            <div className="learning-item">
+                              <FiCheck className="text-success" />
+                              <span>{objective}</span>
+                            </div>
+                          </Col>
+                        ))}
+                      </Row>
 
-            {/* Course Content */}
-            <div className="content-section mb-4">
-              <h3 className="section-title">Course Content</h3>
-              <p className="text-muted">This course includes comprehensive lessons covering all essential topics.</p>
-            </div>
+                      <hr className="my-4" />
 
-            {/* Requirements */}
-            <div className="content-section mb-4">
-              <h3 className="section-title">Requirements</h3>
-              <ul>
-                <li>Basic computer knowledge</li>
-                <li>Willingness to learn</li>
-                <li>No prior experience required</li>
-              </ul>
-            </div>
+                      <h3>Requirements</h3>
+                      <ul className="requirements-list">
+                        {(course.requirements || [
+                          'No prior experience required',
+                          'A computer with internet connection',
+                          'Willingness to learn'
+                        ]).map((req, index) => (
+                          <li key={index}>{req}</li>
+                        ))}
+                      </ul>
 
-            {/* Share Section */}
-            <div className="content-section mb-4">
-              <h3 className="section-title">Share This Course</h3>
-              <div className="social-share-buttons">
-                <Button 
-                  variant="outline-primary" 
-                  size="sm"
-                  onClick={() => shareOnSocial('facebook')}
-                >
-                  <FaFacebook /> Facebook
-                </Button>
-                <Button 
-                  variant="outline-info" 
-                  size="sm"
-                  onClick={() => shareOnSocial('twitter')}
-                >
-                  <FaTwitter /> Twitter
-                </Button>
-                <Button 
-                  variant="outline-primary" 
-                  size="sm"
-                  onClick={() => shareOnSocial('linkedin')}
-                >
-                  <FaLinkedin /> LinkedIn
-                </Button>
-                <Button 
-                  variant="outline-success" 
-                  size="sm"
-                  onClick={() => shareOnSocial('whatsapp')}
-                >
-                  <FaWhatsapp /> WhatsApp
-                </Button>
-              </div>
-            </div>
+                      <hr className="my-4" />
 
-            {/* Reviews Section (Static) */}
-            <div className="content-section">
-              <h3 className="section-title">Student Reviews</h3>
-              <div className="reviews-placeholder">
-                <p className="text-muted">Reviews functionality coming soon...</p>
-              </div>
-            </div>
+                      <h3>Description</h3>
+                      <p className="course-full-description">
+                        {course.fullDescription || course.description}
+                      </p>
+                    </Card.Body>
+                  </Card>
+                </Tab.Pane>
+
+                {/* Curriculum Tab */}
+                <Tab.Pane eventKey="curriculum">
+                  <Card className="content-card">
+                    <Card.Body>
+                      <h3>Course Curriculum</h3>
+                      <div className="curriculum-list">
+                        {(course.modules || [
+                          { title: 'Introduction', lessons: 5, duration: '1 hour' },
+                          { title: 'Core Concepts', lessons: 8, duration: '3 hours' },
+                          { title: 'Advanced Topics', lessons: 10, duration: '4 hours' },
+                          { title: 'Final Project', lessons: 3, duration: '2 hours' }
+                        ]).map((module, index) => (
+                          <div key={index} className="curriculum-module">
+                            <div className="module-header">
+                              <h5>
+                                <FiPlay /> {module.title}
+                              </h5>
+                              <span className="text-muted">
+                                {module.lessons} lessons • {module.duration}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Tab.Pane>
+
+                {/* Instructor Tab */}
+                <Tab.Pane eventKey="instructor">
+                  <Card className="content-card">
+                    <Card.Body>
+                      <div className="instructor-profile">
+                        <img
+                          src={course.instructor?.imageUrl || 'https://via.placeholder.com/150'}
+                          alt={course.instructor?.name || course.instructorName}
+                          className="instructor-profile-image"
+                        />
+                        <div>
+                          <h3>{course.instructor?.name || course.instructorName}</h3>
+                          <p className="instructor-title">
+                            {course.instructor?.title || 'Expert Instructor'}
+                          </p>
+                          <div className="instructor-stats">
+                            <span><FiStar /> 4.8 Rating</span>
+                            <span><FiUsers /> {course.instructor?.studentsCount || 10000} Students</span>
+                            <span><FiBookOpen /> {course.instructor?.coursesCount || 15} Courses</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="instructor-bio mt-3">
+                        {course.instructor?.bio || 'Experienced instructor with years of industry experience.'}
+                      </p>
+                    </Card.Body>
+                  </Card>
+                </Tab.Pane>
+
+                {/* Reviews Tab */}
+                <Tab.Pane eventKey="reviews">
+                  <Card className="content-card">
+                    <Card.Body>
+                      <h3>Student Reviews</h3>
+                      {reviews.length === 0 ? (
+                        <p className="text-muted">No reviews yet. Be the first to review!</p>
+                      ) : (
+                        <div className="reviews-list">
+                          {reviews.map((review, index) => (
+                            <div key={index} className="review-item">
+                              <div className="review-header">
+                                <div>
+                                  <h6>{review.userName || 'Anonymous'}</h6>
+                                  <div className="review-rating">
+                                    {[...Array(5)].map((_, i) => (
+                                      <FiStar
+                                        key={i}
+                                        className={i < review.rating ? 'text-warning' : 'text-muted'}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                                <span className="text-muted small">
+                                  {new Date(review.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p>{review.comment}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Tab.Pane>
+              </Tab.Content>
+            </Tab.Container>
           </Col>
 
           {/* Sidebar */}
           <Col lg={4}>
-            <div className="course-sidebar">
-              <div className="price-card">
-                <h2 className="price">${course.price}</h2>
-                
-                <div className="d-grid gap-2 mb-3">
-                  <Button 
-                    variant="primary" 
-                    size="lg"
-                    onClick={buyNow}
-                  >
-                    Buy Now
-                  </Button>
-                  
-                  <Button 
-                    variant={isInCart ? "outline-secondary" : "outline-primary"}
-                    size="lg"
-                    onClick={addToCart}
-                    disabled={isInCart}
-                  >
-                    <FiShoppingCart /> {isInCart ? 'Added to Cart' : 'Add to Cart'}
-                  </Button>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <Card className="course-sidebar-card sticky-top">
+                <div className="course-preview">
+                  <img
+                    src={course.imageUrl || 'https://via.placeholder.com/400x300'}
+                    alt={course.title}
+                    className="preview-image"
+                  />
                 </div>
+                <Card.Body>
+                  <div className="price-section">
+                    <h2 className="course-price">${course.price?.toFixed(2) || '99.99'}</h2>
+                    {course.originalPrice && (
+                      <span className="original-price">${course.originalPrice.toFixed(2)}</span>
+                    )}
+                  </div>
 
-                <div className="course-includes">
-                  <h4>This course includes:</h4>
-                  <ul>
-                    <li><FiClock /> {course.duration} hours on-demand video</li>
-                    <li><FiAward /> Certificate of completion</li>
-                    <li><FiUsers /> Lifetime access</li>
-                    <li><FiShare2 /> Access on mobile and desktop</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+                  {isInCart() ? (
+                    <Button 
+                      variant="success" 
+                      size="lg" 
+                      className="w-100 mb-3"
+                      onClick={() => navigate('/cart')}
+                    >
+                      <FiCheck /> In Cart - Go to Cart
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      className="w-100 mb-3"
+                      onClick={handleAddToCart}
+                      disabled={addingToCart}
+                    >
+                      {addingToCart ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <>
+                          <FiShoppingCart /> Add to Cart
+                        </>
+                      )}
+                    </Button>
+                  )}
+
+                  <div className="course-includes">
+                    <h5>This course includes:</h5>
+                    <ul>
+                      <li><FiClock /> {course.duration || '10'} hours on-demand video</li>
+                      <li><FiBookOpen /> {course.articlesCount || 5} articles</li>
+                      <li><FiAward /> Certificate of completion</li>
+                      <li><FiUsers /> Lifetime access</li>
+                    </ul>
+                  </div>
+                </Card.Body>
+              </Card>
+            </motion.div>
           </Col>
         </Row>
 
         {/* Similar Courses */}
         {similarCourses.length > 0 && (
-          <div className="mt-5">
-            <h3 className="mb-4">More Like This Course</h3>
+          <div className="similar-courses mt-5">
+            <h2 className="section-title">Similar Courses</h2>
             <Row className="g-4">
-              {similarCourses.map((similarCourse, index) => (
-                <Col lg={3} md={6} key={similarCourse.id}>
-                  <CourseCard course={similarCourse} delay={index * 0.1} />
+              {similarCourses.slice(0, 3).map((similarCourse) => (
+                <Col key={similarCourse.id} lg={4} md={6}>
+                  <CourseCard course={similarCourse} />
                 </Col>
               ))}
             </Row>

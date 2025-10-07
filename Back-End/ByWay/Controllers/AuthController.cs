@@ -47,6 +47,26 @@ namespace ByWay.API.Controllers
             await _signInManager.SignOutAsync();
             return Ok(new { result = "Logged out" });
         }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<ActionResult<UserDto>> GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _context.Users.FindAsync(int.Parse(userId));
+            
+            if (user == null)
+                return NotFound();
+            
+            return new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Name = user.Name,
+                Role = user.Role,
+                IsAdmin = user.Role == "Admin"
+            };
+        }
     }
 }
 

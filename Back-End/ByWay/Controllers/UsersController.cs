@@ -21,7 +21,7 @@ namespace ByWay.API.Controllers
 
         [HttpGet]
         public async Task<ActionResult<PagedResult<UserDto>>> GetUsers([FromQuery] UserFilterParams filterParams)
-        {
+        { 
             var result = await _userService.GetUsersAsync(filterParams);
             return Ok(result);
         }
