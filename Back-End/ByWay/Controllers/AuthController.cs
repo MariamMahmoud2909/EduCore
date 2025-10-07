@@ -1,8 +1,11 @@
 ﻿using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.DTOs.AuthDto;
+using ByWay.Core.DTOs.User;
 using ByWay.Core.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ByWay.API.Controllers
 {
@@ -12,10 +15,16 @@ namespace ByWay.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        public AuthController(IAuthService authService, SignInManager<ApplicationUser> signInManager)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public AuthController(
+            IAuthService authService,
+            SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager)
         {
             _authService = authService;
             _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         [HttpPost("login")]
@@ -53,20 +62,25 @@ namespace ByWay.API.Controllers
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = await _context.Users.FindAsync(int.Parse(userId));
-            
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+
             if (user == null)
                 return NotFound();
-            
+
+            var roles = await _userManager.GetRolesAsync(user);
             return new UserDto
             {
                 Id = user.Id,
                 Email = user.Email,
-                Name = user.Name,
-                Role = user.Role,
-                IsAdmin = user.Role == "Admin"
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                IsAdmin = roles.Contains("Admin"),
+                CreatedAt = user.CreatedAt
             };
         }
     }
 }
-

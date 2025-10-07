@@ -20,6 +20,10 @@ namespace ByWay.Core.Entities
         public int CategoryId { get; set; }
         public int InstructorId { get; set; }
 
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public decimal AverageRating { get; set; }
+        public int ReviewsCount { get; set; }
+
         public virtual Category Category { get; set; }
         public virtual Instructor Instructor { get; set; }
         public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();

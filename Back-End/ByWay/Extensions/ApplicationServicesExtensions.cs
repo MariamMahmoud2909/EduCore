@@ -32,6 +32,8 @@ namespace ByWay.API.Extensions
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IReviewService, ReviewService>();
+
             services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<MappingProfile>();
