@@ -34,7 +34,7 @@ namespace ByWay.Infrastructure.Data.DataSeeding
 
             if (await userManager.FindByEmailAsync(adminUser.Email) == null)
             {
-                await userManager.CreateAsync(adminUser, "Admin123!");
+                await userManager.CreateAsync(adminUser, "Admin@123");
                 await userManager.AddToRoleAsync(adminUser, "Admin");
             }
 
