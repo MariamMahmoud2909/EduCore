@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
 import { Container, Row, Col } from 'react-bootstrap';
 import { FiArrowRight, FiPlay, FiBook, FiUsers, FiAward } from 'react-icons/fi';
-import CourseCard from '../components/shared/CategoryCard';
+import CourseCard from '../components/shared/CourseCard';
+import CategoryCard from '../components/shared/CategoryCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { courseService, instructorService, categoryService, dashboardService } from '../services/api';
 import './LandingPage.css';
@@ -31,18 +32,22 @@ const LandingPage = () => {
   const fetchLandingData = async () => {
     try {
       const [statsRes, coursesRes, instructorsRes, categoriesRes] = await Promise.all([
-        dashboardService.getStats(),
-        courseService.getTopCourses(),
-        instructorService.getTopInstructors(),
-        categoryService.getTopCategories()
+        dashboardService.getStats().catch(err => ({ data: {} })),
+      courseService.getTopCourses().catch(err => ({ data: [] })),
+      instructorService.getTopInstructors().catch(err => ({ data: [] })),
+      categoryService.getTopCategories().catch(err => ({ data: [] }))
       ]);
       
-      setStats(statsRes.data);
-      setTopCourses(coursesRes.data);
-      setTopInstructors(instructorsRes.data);
-      setTopCategories(categoriesRes.data);
+      setStats(statsRes.data || {});
+    setTopCourses(coursesRes.data || []);
+    setTopInstructors(instructorsRes.data || []);
+    setTopCategories(categoriesRes.data || []);
     } catch (error) {
       console.error('Error fetching landing data:', error);
+      setStats({});
+    setTopCourses([]);
+    setTopInstructors([]);
+    setTopCategories([]);
     } finally {
       setLoading(false);
     }
@@ -229,31 +234,16 @@ const LandingPage = () => {
             </Link>
           </div>
 
-          <Row className="g-4">
-            {topCategories.map((category, index) => (
-              <Col lg={3} md={6} key={category.id}>
-                <motion.div
-                  className="category-card"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ y: -8, scale: 1.02 }}
-                >
-                  <div className="category-image">
-                    <img 
-                      src={category.image || `https://via.placeholder.com/300x200/1E3A8A/FFFFFF?text=${category.name}`} 
-                      alt={category.name}
-                    />
-                  </div>
-                  <div className="category-content">
-                    <h3 className="category-name">{category.name}</h3>
-                    <p className="category-courses">{Math.floor(Math.random() * 50) + 10} Courses</p>
-                  </div>
-                </motion.div>
-              </Col>
-            ))}
-          </Row>
+        <Row className="g-4">
+          {topCategories.map((category, index) => (
+            <Col lg={3} md={6} key={category.id}>
+              <CategoryCard 
+                category={category} 
+                delay={index * 0.1}
+              />
+            </Col>
+          ))}
+        </Row>
         </Container>
       </section>
 

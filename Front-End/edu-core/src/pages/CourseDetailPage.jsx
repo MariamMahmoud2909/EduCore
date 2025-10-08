@@ -8,7 +8,7 @@ import {
   FiShoppingCart, FiCheck, FiPlay 
 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import { courseService, cartService } from '../services/api';
+import { courseService, cartService, reviewService } from '../services/api';
 import { userAtom, cartAtom, isAuthenticatedAtom } from '../store/atoms';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import CourseCard from '../components/courses/CourseCard';

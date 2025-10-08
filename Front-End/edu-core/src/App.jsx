@@ -8,6 +8,8 @@ import './styles/index.css';
 // Layout
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import AdminLayout from './components/layout/AdminLayout';
+
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -18,12 +20,14 @@ import RegisterPage from './pages/RegisterPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import MyCoursesPage from './pages/MyCoursesPage';
+import OAuthCallback from './pages/OAuthCallback';
 
 // Admin Pages
-import AdminDashboard from './pages/admin/Dashboard';
-import AdminCourses from './pages/admin/AdminCourses';
-import AdminInstructors from './pages/admin/AdminInstructors';
-import AdminUsers from './pages/admin/AdminUsers';
+// import AdminDashboard from './pages/admin/Dashboard';
+// import AdminCourses from './pages/admin/AdminCourses';
+// import AdminInstructors from './pages/admin/AdminInstructors';
+// import AdminUsers from './pages/admin/AdminUsers';
 
 // Protected Routes
 import ProtectedRoute from './components/shared/ProtectedRoute';
@@ -68,7 +72,7 @@ function App() {
               } />
               
               {/* Admin Routes */}
-              <Route path="/admin/dashboard" element={
+              {/* <Route path="/admin/dashboard" element={
                 <AdminRoute>
                   <AdminDashboard />
                 </AdminRoute>
@@ -87,7 +91,7 @@ function App() {
                 <AdminRoute>
                    <AdminUsers />
                 </AdminRoute>
-              } />
+              } /> */}
               <Route path="/admin/*" element={
                 <AdminRoute>
                   <AdminLayout />
