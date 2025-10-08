@@ -56,5 +56,10 @@ namespace ByWay.Infrastructure.Repositories
         {
             return await _dbContext.Set<T>().AnyAsync(predicate);
         }
+
+        public void DeleteRange(IEnumerable<T> entities)
+        {
+            _dbContext.RemoveRange(entities);
+        }
     }
 }

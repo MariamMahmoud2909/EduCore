@@ -1,163 +1,158 @@
 ﻿using AutoMapper;
+using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;
-using ByWay.Core.Contracts.Services;
 using ByWay.Core.DTOs.Common;
 using ByWay.Core.DTOs.User;
 using ByWay.Core.Entities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace ByWay.Application.Services
 {
     public class UserService : IUserService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IPasswordHasher<ApplicationUser> _passwordHasher;
 
-        public UserService(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork, IMapper mapper)
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IPasswordHasher<ApplicationUser> passwordHasher)
         {
-            _userManager = userManager;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _passwordHasher = passwordHasher;
         }
 
-        public async Task<PagedResult<UserDto>> GetUsersAsync(UserFilterParams filterParams)
+        public async Task<PagedResult<UserDto>> GetUsersAsync(int page, int pageSize, string search = null)
         {
-            var usersQuery = _userManager.Users.AsQueryable();
+            var users = await _unitOfWork.Repository<ApplicationUser>().GetAllAsync(
+                query => query.OrderByDescending(u => u.CreatedAt)
+            );
 
-            // Apply filters
-            if (!string.IsNullOrEmpty(filterParams.Search))
+            // Apply search filter
+            var filteredUsers = users.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                usersQuery = usersQuery.Where(u =>
-                    u.FirstName.Contains(filterParams.Search) ||
-                    u.LastName.Contains(filterParams.Search) ||
-                    u.Email.Contains(filterParams.Search));
+                filteredUsers = filteredUsers.Where(u =>
+                    u.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    u.Email.Contains(search, StringComparison.OrdinalIgnoreCase));
             }
 
-            if (filterParams.IsAdmin.HasValue)
-            {
-                usersQuery = usersQuery.Where(u => u.IsAdmin == filterParams.IsAdmin.Value);
-            }
+            var totalCount = filteredUsers.Count();
+            var pagedUsers = filteredUsers
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
-            var totalCount = await usersQuery.CountAsync();
-
-            var users = await usersQuery
-                .OrderByDescending(u => u.CreatedAt)
-                .Skip((filterParams.Page - 1) * filterParams.PageSize)
-                .Take(filterParams.PageSize)
-                .ToListAsync();
-
-            var userDtos = new List<UserDto>();
-            foreach (var user in users)
-            {
-                var orders = await _unitOfWork.Repository<Order>().FindAsync(o => o.UserId == user.Id);
-                var ordersList = orders.ToList();
-
-                userDtos.Add(new UserDto
-                {
-                    Id = user.Id,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    Email = user.Email ?? "",
-                    IsAdmin = user.IsAdmin,
-                    CreatedAt = user.CreatedAt,
-                    OrdersCount = ordersList.Count,
-                    TotalSpent = ordersList.Sum(o => o.TotalAmount)
-                });
-            }
+            var userDtos = _mapper.Map<List<UserDto>>(pagedUsers);
 
             return new PagedResult<UserDto>
             {
                 Items = userDtos,
                 TotalCount = totalCount,
-                Page = filterParams.Page,
-                PageSize = filterParams.PageSize
+                Page = page,
+                PageSize = pageSize
             };
         }
 
-        public async Task<UserDto?> GetUserByIdAsync(string userId)
+        public async Task<UserDto?> GetUserByIdAsync(int userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return null;
+            var users = await _unitOfWork.Repository<ApplicationUser>().FindAsync(u => u.Id == userId);
+            var user = users.FirstOrDefault();
 
+            return user == null ? null : _mapper.Map<UserDto>(user);
+        }
+
+        public async Task<UserDto?> UpdateUserProfileAsync(int userId, UpdateUserProfileDto dto)
+        {
+            var users = await _unitOfWork.Repository<ApplicationUser>().FindAsync(u => u.Id == userId);
+            var user = users.FirstOrDefault();
+
+            if (user == null)
+                return null;
+
+            _mapper.Map(dto, user);
+            _unitOfWork.Repository<ApplicationUser>().Update(user);
+            await _unitOfWork.CompleteAsync();
+
+            return await GetUserByIdAsync(userId);
+        }
+
+        public async Task<UserStatsDto?> GetUserStatsAsync(int userId)
+        {
+            var users = await _unitOfWork.Repository<ApplicationUser>().FindAsync(u => u.Id == userId);
+            var user = users.FirstOrDefault();
+
+            if (user == null)
+                return null;
+
+            var enrollments = await _unitOfWork.Repository<Enrollment>().FindAsync(e => e.UserId == userId);
             var orders = await _unitOfWork.Repository<Order>().FindAsync(o => o.UserId == userId);
-            var ordersList = orders.ToList();
+            var reviews = await _unitOfWork.Repository<Review>().FindAsync(r => r.UserId == userId);
 
-            return new UserDto
+            return new UserStatsDto
             {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email ?? "",
-                IsAdmin = user.IsAdmin,
-                CreatedAt = user.CreatedAt,
-                OrdersCount = ordersList.Count,
-                TotalSpent = ordersList.Sum(o => o.TotalAmount)
+                UserId = userId,
+                EnrolledCoursesCount = enrollments.Count(),
+                CompletedCoursesCount = enrollments.Count(e => e.IsCompleted),
+                InProgressCoursesCount = enrollments.Count(e => !e.IsCompleted),
+                TotalSpent = orders.Sum(o => o.TotalAmount),
+                ReviewsCount = reviews.Count(),
+                JoinedDate = user.CreatedAt
             };
         }
 
-        public async Task<bool> DeleteUserAsync(string userId)
+        public async Task<bool> DeleteUserAsync(int userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
+            var users = await _unitOfWork.Repository<ApplicationUser>().FindAsync(u => u.Id == userId);
+            var user = users.FirstOrDefault();
 
-            // Don't allow deleting admin users
-            if (user.IsAdmin) return false;
+            if (user == null)
+                return false;
 
-            var result = await _userManager.DeleteAsync(user);
-            return result.Succeeded;
-        }
-
-        public async Task<bool> ToggleAdminRoleAsync(string userId, bool isAdmin)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
-
-            user.IsAdmin = isAdmin;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded) return false;
-
-            // Update roles
-            if (isAdmin)
-            {
-                if (!await _userManager.IsInRoleAsync(user, "Admin"))
-                {
-                    await _userManager.AddToRoleAsync(user, "Admin");
-                }
-            }
-            else
-            {
-                if (await _userManager.IsInRoleAsync(user, "Admin"))
-                {
-                    await _userManager.RemoveFromRoleAsync(user, "Admin");
-                }
-            }
+            _unitOfWork.Repository<ApplicationUser>().Delete(user);
+            await _unitOfWork.CompleteAsync();
 
             return true;
         }
 
-        public async Task<UserStatsDto> GetUserStatsAsync(string userId)
+        //public async Task<UserDto?> ToggleAdminRoleAsync(int userId, bool isAdmin)
+        //{
+        //    var users = await _unitOfWork.Repository<ApplicationUser>().FindAsync(u => u.Id == userId);
+        //    var user = users.FirstOrDefault();
+
+        //    if (user == null)
+        //        return null;
+
+        //    user.Role = isAdmin ? "Admin" : "Student";
+        //    _unitOfWork.Repository<ApplicationUser>().Update(user);
+        //    await _unitOfWork.CompleteAsync();
+
+        //    return await GetUserByIdAsync(userId);
+        //}
+
+        public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto dto)
         {
-            var orders = await _unitOfWork.Repository<Order>().FindAsync(o => o.UserId == userId);
-            var ordersList = orders.ToList();
+            var users = await _unitOfWork.Repository<ApplicationUser>().FindAsync(u => u.Id == userId);
+            var user = users.FirstOrDefault();
 
-            var orderItems = new List<OrderItem>();
-            foreach (var order in ordersList)
-            {
-                var items = await _unitOfWork.Repository<OrderItem>().FindAsync(oi => oi.OrderId == order.Id);
-                orderItems.AddRange(items);
-            }
+            if (user == null)
+                return false;
 
-            return new UserStatsDto
-            {
-                TotalOrders = ordersList.Count,
-                TotalSpent = ordersList.Sum(o => o.TotalAmount),
-                CoursesOwned = orderItems.Select(oi => oi.CourseId).Distinct().Count(),
-                LastLogin = DateTime.UtcNow // Update this if you track last login
-            };
+            var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.CurrentPassword);
+            if (verificationResult != PasswordVerificationResult.Success)
+                return false;
+
+            // Hash and save new password
+            user.PasswordHash = _passwordHasher.HashPassword(user, dto.NewPassword);
+
+            _unitOfWork.Repository<ApplicationUser>().Update(user);
+            await _unitOfWork.CompleteAsync();
+
+            return true;
+        }
+
+        public Task<UserDto> ToggleAdminRoleAsync(int userId, bool isAdmin)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,17 +1,12 @@
-﻿using AspNet.Security.OAuth.GitHub;
-using ByWay.Application.Helpers;
+﻿using ByWay.Application.Helpers;
 using ByWay.Application.Services;
 using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;
-using ByWay.Core.Contracts.Services;
 using ByWay.Core.Entities;
 using ByWay.Core.Mappings;
 using ByWay.Infrastructure.Data;
 using ByWay.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Facebook;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +33,8 @@ namespace ByWay.API.Extensions
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IEnrollmentService, EnrollmentService>();
 
             services.AddAutoMapper(cfg =>
             {
@@ -50,7 +47,7 @@ namespace ByWay.API.Extensions
         public static IServiceCollection AddAuthServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging());
-            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
@@ -59,7 +56,8 @@ namespace ByWay.API.Extensions
                 options.Password.RequireLowercase = false;
             })
                     .AddEntityFrameworkStores<ApplicationDbContext>()
-                    .AddDefaultTokenProviders();
+                    .AddDefaultTokenProviders()
+                    .AddRoles<IdentityRole<int>>();
             services.AddHttpClient();
             services.AddAuthentication(options =>
             {

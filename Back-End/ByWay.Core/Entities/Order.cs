@@ -5,7 +5,7 @@ namespace ByWay.Core.Entities
 {
     public class Order : BaseEntity, ITimestampEntity
     {
-        public string UserId { get; set; }
+        public int UserId { get; set; }
 
         public decimal TotalAmount { get; set; }
         public decimal TaxAmount { get; set; }

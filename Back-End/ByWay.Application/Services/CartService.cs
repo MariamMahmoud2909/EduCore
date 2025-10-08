@@ -18,7 +18,7 @@ namespace ByWay.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<List<CourseDto>> GetCartAsync(string userId)
+        public async Task<List<CourseDto>> GetCartAsync(int userId)
         {
             var cartItems = await _unitOfWork.Repository<Cart>().FindAsync(
                 sc => sc.UserId == userId,
@@ -33,7 +33,7 @@ namespace ByWay.Application.Services
             return _mapper.Map<List<CourseDto>>(courses);
         }
 
-        public async Task<bool> AddToCartAsync(string userId, int courseId)
+        public async Task<bool> AddToCartAsync(int userId, int courseId)
         {
             // Check if already in cart
             var existingItem = await _unitOfWork.Repository<Cart>().AnyAsync(
@@ -55,7 +55,7 @@ namespace ByWay.Application.Services
             return true;
         }
 
-        public async Task<bool> RemoveFromCartAsync(string userId, int courseId)
+        public async Task<bool> RemoveFromCartAsync(int userId, int courseId)
         {
             var cartItems = await _unitOfWork.Repository<Cart>().FindAsync(
                 sc => sc.UserId == userId && sc.CourseId == courseId
@@ -70,7 +70,7 @@ namespace ByWay.Application.Services
             return true;
         }
 
-        public async Task<bool> ClearCartAsync(string userId)
+        public async Task<bool> ClearCartAsync(int userId)
         {
             var cartItems = await _unitOfWork.Repository<Cart>().FindAsync(
                 sc => sc.UserId == userId
