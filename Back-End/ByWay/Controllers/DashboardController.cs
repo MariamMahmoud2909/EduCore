@@ -7,7 +7,6 @@ namespace ByWay.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardService _dashboardService;
@@ -18,6 +17,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("stats")]
+        [AllowAnonymous]
         public async Task<ActionResult<DashboardStatsDto>> GetStats()
         {
             var stats = await _dashboardService.GetStatsAsync();
@@ -25,6 +25,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("activities")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<List<ActivityDto>>> GetRecentActivities()
         {
             var activities = await _dashboardService.GetRecentActivitiesAsync();
@@ -32,6 +33,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("sales")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<SalesReportDto>> GetSalesReport([FromQuery] string period = "month")
         {
             var report = await _dashboardService.GetSalesReportAsync(period);
@@ -39,6 +41,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("popular-courses")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<List<PopularCourseDto>>> GetPopularCourses()
         {
             var courses = await _dashboardService.GetPopularCoursesAsync();

@@ -19,6 +19,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<PagedResult<ReviewDto>>> GetCourseReviews(
             int courseId,
             [FromQuery] int page = 1,

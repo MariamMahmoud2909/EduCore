@@ -27,6 +27,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpPost("checkout")]
+        [Authorize]
         public async Task<ActionResult<OrderDto>> Checkout(CheckoutDto checkoutDto)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
