@@ -1,0 +1,49 @@
+.instructor-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transition: all 0.3s;
+  height: 100%;
+}
+
+.instructor-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.instructor-image {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid var(--gray-100);
+}
+
+.instructor-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.instructor-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 0.5rem;
+}
+
+.instructor-title {
+  font-size: 0.875rem;
+  color: var(--primary-blue);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.instructor-bio {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  line-height: 1.6;
+  margin: 0;
+}

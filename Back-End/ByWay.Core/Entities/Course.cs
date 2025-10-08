@@ -1,0 +1,45 @@
+﻿using ByWay.Core.Contracts.Interfaces;
+using ByWay.Core.Enums;
+
+namespace ByWay.Core.Entities
+{
+    public class Course : BaseEntity, ITimestampEntity
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public decimal Price { get; set; }
+        public string? Image { get; set; }
+        public CourseLevel Level { get; set; }
+        public decimal Rating { get; set; }
+        public int Duration { get; set; }
+        public bool IsPurchased { get; set; }
+        public bool IsPublished { get; set; } = true;
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+
+        public int CategoryId { get; set; }
+        public int InstructorId { get; set; }
+
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public decimal AverageRating { get; set; }
+        public int ReviewsCount { get; set; }
+
+        public virtual Category Category { get; set; }
+        public virtual Instructor Instructor { get; set; }
+        public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
+        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+
+        public string LevelName => Level switch
+        {
+            CourseLevel.Beginner => "Beginner",
+            CourseLevel.Intermediate => "Intermediate",
+            CourseLevel.Advanced => "Advanced",
+            _ => "Unknown"
+        };
+
+        public bool CanBeDeleted => !IsPurchased && (OrderItems?.Count ?? 0) == 0;
+        public bool CanBeModified => !IsPurchased;
+        public int StudentsEnrolled => OrderItems?.Count ?? 0;
+    }
+}
