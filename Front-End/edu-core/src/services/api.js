@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-// Update to match your backend URL
-const API_BASE_URL = 'https://localhost:7128/api';
-
+//const API_BASE_URL = 'https://localhost:7128/api';
+const API_BASE_URL = 'http://mariam2909-001-site1.anytempurl.com/';
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

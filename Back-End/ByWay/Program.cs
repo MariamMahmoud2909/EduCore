@@ -2,10 +2,11 @@ using ByWay.API.Extensions;
 using ByWay.Core.Entities;
 using ByWay.Infrastructure.Data;
 using ByWay.Infrastructure.Data.DataSeeding;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.OpenApi.Models;
 
 namespace ByWay.API
 {
@@ -52,7 +53,19 @@ namespace ByWay.API
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowFrontend",
+                options.AddPolicy("Production",
+                    policy =>
+                    {
+                        policy.WithOrigins(
+                            "https://algoriza-internship2025-fs172-fe-by.vercel.app",
+                            "http://mariam2909-001-site1.anytempurl.com"
+                        )
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                    });
+
+                options.AddPolicy("Development",
                     policy =>
                     {
                         policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
@@ -62,16 +75,29 @@ namespace ByWay.API
                     });
             });
 
+
             IdentityModelEventSource.ShowPII = true;
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseCors("Development");
+            }
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "ByWay API V1");
+                c.RoutePrefix = "api/docs";
+            });
+
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Error");
+                app.UseHsts();
+                app.UseCors("Production");
             }
 
             app.UseExceptionHandler(errorApp =>
@@ -94,10 +120,6 @@ namespace ByWay.API
                 context.Request.EnableBuffering();
                 await next();
             });
-            
-            app.UseHttpsRedirection();
-
-            app.UseCors("AllowFrontend");
 
             app.UseRouting();
             
@@ -110,9 +132,12 @@ namespace ByWay.API
                 RequestPath = "/uploads"
             });
 
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             app.UseHttpsRedirection();
-            
-            app.UseCors("AllowAll");
 
             app.UseAuthentication();
             
