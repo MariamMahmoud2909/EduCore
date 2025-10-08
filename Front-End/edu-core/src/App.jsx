@@ -43,7 +43,8 @@ function App() {
               <Route path="/courses/:id" element={<CourseDetailPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              
+              <Route path="/auth/callback" element={<OAuthCallback />} />
+        
               {/* Protected Routes */}
               <Route path="/cart" element={
                 <ProtectedRoute>
@@ -58,6 +59,11 @@ function App() {
               <Route path="/payment-success" element={
                 <ProtectedRoute>
                   <PaymentSuccessPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/my-courses" element={
+                <ProtectedRoute>
+                  <MyCoursesPage />
                 </ProtectedRoute>
               } />
               
@@ -82,7 +88,11 @@ function App() {
                    <AdminUsers />
                 </AdminRoute>
               } />
-
+              <Route path="/admin/*" element={
+                <AdminRoute>
+                  <AdminLayout />
+                </AdminRoute>
+              } />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>
