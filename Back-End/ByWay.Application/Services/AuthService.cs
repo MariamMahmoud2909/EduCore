@@ -68,7 +68,7 @@ namespace ByWay.Application.Services
                 return null;
             }
 
-            await _userManager.AddToRoleAsync(user, "User");
+            await _userManager.AddToRoleAsync(user, "Student");
 
             // Send welcome email
             await _emailService.SendWelcomeEmailAsync(user.Email, user.FirstName);
