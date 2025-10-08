@@ -1,8 +1,9 @@
-﻿using ByWay.Core.Enums;
+﻿using ByWay.Core.Contracts.Interfaces;
+using ByWay.Core.Enums;
 
 namespace ByWay.Core.Entities
 {
-    public class Payment
+    public class Payment : ITimestampEntity
     {
         public int Id { get; set; }
         public int OrderId { get; set; }
@@ -12,6 +13,7 @@ namespace ByWay.Core.Entities
         public PaymentStatus Status { get; set; }
         public string PaymentMethod { get; set; } // CreditCard, PayPal, etc.
         public string TransactionId { get; set; }
+        public DateTime UpdatedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ProcessedAt { get; set; }
     }

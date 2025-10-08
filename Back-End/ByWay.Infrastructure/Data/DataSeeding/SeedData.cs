@@ -523,17 +523,17 @@ namespace ByWay.Infrastructure.Data.DataSeeding
 
         private static async Task ClearExistingData(ApplicationDbContext context)
         {
-            context.Enrollments.RemoveRange(context.Enrollments);
-            context.Reviews.RemoveRange(context.Reviews);
-            context.OrderItems.RemoveRange(context.OrderItems);
-            context.Orders.RemoveRange(context.Orders);
-            context.Carts.RemoveRange(context.Carts);
-            context.Courses.RemoveRange(context.Courses);
-            context.Instructors.RemoveRange(context.Instructors);
-            context.Categories.RemoveRange(context.Categories);
-            context.Payments.RemoveRange(context.Payments);
-            context.PaymentMethods.RemoveRange(context.PaymentMethods);
-            context.Activities.RemoveRange(context.Activities);
+            if (context.Enrollments.Any()) context.Enrollments.RemoveRange(context.Enrollments);
+            if (context.Reviews.Any()) context.Reviews.RemoveRange(context.Reviews);
+            if (context.OrderItems.Any()) context.OrderItems.RemoveRange(context.OrderItems);
+            if (context.Orders.Any()) context.Orders.RemoveRange(context.Orders);
+            if (context.Carts.Any()) context.Carts.RemoveRange(context.Carts);
+            if (context.Courses.Any()) context.Courses.RemoveRange(context.Courses);
+            if (context.Instructors.Any()) context.Instructors.RemoveRange(context.Instructors);
+            if (context.Categories.Any()) context.Categories.RemoveRange(context.Categories);
+            if (context.Payments.Any()) context.Payments.RemoveRange(context.Payments);
+            if (context.PaymentMethods.Any()) context.PaymentMethods.RemoveRange(context.PaymentMethods);
+            if (context.Activities.Any()) context.Activities.RemoveRange(context.Activities);
 
             await context.SaveChangesAsync();
         }
@@ -556,6 +556,7 @@ namespace ByWay.Infrastructure.Data.DataSeeding
                         UserId = student.Id,
                         TotalAmount = 0,
                         Status = OrderStatus.Completed,
+                        PaymentMethod = GetRandomPaymentMethod(),
                         CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 90)),
                         //CompletedAt = DateTime.UtcNow.AddDays(-random.Next(0, 89))
                     };
@@ -621,7 +622,11 @@ namespace ByWay.Infrastructure.Data.DataSeeding
             context.Reviews.AddRange(reviews);
             await context.SaveChangesAsync();
         }
-
+        private static string GetRandomPaymentMethod()
+        {
+            var methods = new[] { "CreditCard", "PayPal", "BankTransfer", "Stripe" };
+            return methods[new Random().Next(methods.Length)];
+        }
         private static string GetRandomReviewComment(string courseTitle)
         {
             var comments = new[]

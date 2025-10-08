@@ -5,6 +5,7 @@ using ByWay.Core.DTOs.Common;
 using ByWay.Core.DTOs.User;
 using ByWay.Core.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ByWay.Application.Services
 {
@@ -24,7 +25,7 @@ namespace ByWay.Application.Services
         public async Task<PagedResult<UserDto>> GetUsersAsync(int page, int pageSize, string search = null)
         {
             var users = await _unitOfWork.Repository<ApplicationUser>().GetAllAsync(
-                query => query.OrderByDescending(u => u.CreatedAt)
+                query => query.Include(u=> u.Orders).OrderByDescending(u => u.CreatedAt)
             );
 
             // Apply search filter
@@ -33,7 +34,8 @@ namespace ByWay.Application.Services
             {
                 filteredUsers = filteredUsers.Where(u =>
                     u.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    u.Email.Contains(search, StringComparison.OrdinalIgnoreCase));
+                    u.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    u.LastName.Contains(search, StringComparison.OrdinalIgnoreCase));
             }
 
             var totalCount = filteredUsers.Count();

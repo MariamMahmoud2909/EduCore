@@ -100,7 +100,7 @@ namespace ByWay.Application.Services
             if (!string.IsNullOrWhiteSpace(dto.Comment))
                 review.Comment = dto.Comment;
 
-            review.UpdatedAt = DateTime.UtcNow;
+            review.CreatedAt = DateTime.UtcNow;
 
             _unitOfWork.Repository<Review>().Update(review);
             await _unitOfWork.CompleteAsync();

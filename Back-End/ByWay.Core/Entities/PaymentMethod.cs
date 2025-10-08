@@ -1,6 +1,8 @@
-﻿namespace ByWay.Core.Entities
+﻿using ByWay.Core.Contracts.Interfaces;
+
+namespace ByWay.Core.Entities
 {
-    public class PaymentMethod
+    public class PaymentMethod : ITimestampEntity
     {
         public int Id { get; set; }
         public int UserId { get; set; }
@@ -11,6 +13,7 @@
         public string ExpiryMonth { get; set; }
         public string ExpiryYear { get; set; }
         public bool IsDefault { get; set; }
+        public DateTime UpdatedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
