@@ -17,7 +17,7 @@ namespace ByWay.Infrastructure.Data.Configurations
                 .ValueGeneratedOnAdd();
 
             builder.Property(oi => oi.Price)
-                .HasColumnType("decimal(10,2)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(oi => oi.PurchasedAt)

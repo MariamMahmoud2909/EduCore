@@ -38,7 +38,7 @@ namespace ByWay.Infrastructure.Data.Configurations
 
             builder.Property(o => o.Status)
                 .HasConversion<int>()
-                .HasDefaultValue(OrderStatus.Completed);
+                .HasDefaultValue(OrderStatus.Pending);
 
             builder.Property(o => o.OrderDate)
                 .HasDefaultValueSql("GETUTCDATE()");

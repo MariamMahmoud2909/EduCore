@@ -19,6 +19,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<PagedResult<CourseDto>>> GetCourses(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 12,
@@ -44,6 +45,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<CourseDto>> GetCourse(int id)
         {
             var course = await _courseService.GetCourseByIdAsync(id);
@@ -54,6 +56,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("TopCourses")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<CourseDto>>> GetTopCourses()
         {
             var courses = await _courseService.GetTopCoursesAsync();
@@ -61,6 +64,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("{id}/similar")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<CourseDto>>> GetSimilarCourses(int id)
         {
             var courses = await _courseService.GetSimilarCoursesAsync(id);

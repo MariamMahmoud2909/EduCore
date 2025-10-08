@@ -1,10 +1,11 @@
-﻿using ByWay.Core.Enums;
+﻿using ByWay.Core.Contracts.Interfaces;
+using ByWay.Core.Enums;
 
 namespace ByWay.Core.Entities
 {
-    public class Order : BaseEntity
+    public class Order : BaseEntity, ITimestampEntity
     {
-        public string UserId { get; set; }
+        public int UserId { get; set; }
 
         public decimal TotalAmount { get; set; }
         public decimal TaxAmount { get; set; }
@@ -12,6 +13,9 @@ namespace ByWay.Core.Entities
         public string? PaymentTransactionId { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Completed;
         public DateTime OrderDate { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public virtual ApplicationUser User { get; set; }
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

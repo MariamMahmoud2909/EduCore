@@ -13,5 +13,6 @@ namespace ByWay.Core.Contracts.Repositories
         void Delete(T entity);
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>>? predicate = null, Func<IQueryable<T>, IQueryable<T>>? include = null);
+        void DeleteRange(IEnumerable<T> entities);
     }
 }

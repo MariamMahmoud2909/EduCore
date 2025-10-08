@@ -49,6 +49,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("top")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<InstructorDto>>> GetTopInstructors()
         {
             var instructors = await _instructorService.GetTopInstructorsAsync();

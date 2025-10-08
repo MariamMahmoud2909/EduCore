@@ -25,7 +25,7 @@ namespace ByWay.Infrastructure.Data.Configurations
                 .IsRequired();
 
             builder.Property(c => c.Price)
-                .HasColumnType("decimal(10,2)")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(c => c.Image)
@@ -38,6 +38,9 @@ namespace ByWay.Infrastructure.Data.Configurations
             builder.Property(c => c.Rating)
                 .HasColumnType("decimal(3,2)")
                 .HasDefaultValue(0);
+
+            builder.Property(c => c.AverageRating)
+              .HasPrecision(3, 2);
 
             builder.Property(c => c.Duration)
                 .IsRequired();

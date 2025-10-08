@@ -66,19 +66,19 @@ const CoursesPage = () => {
         maxPrice: priceRange.max,
       };
 
+      // Remove undefined values to avoid sending them to backend
       Object.keys(params).forEach(key => 
-      (params[key] === undefined || params[key] === '') && delete params[key]
-    );
+        (params[key] === undefined || params[key] === '') && delete params[key]
+      );
+
       const response = await courseService.getCourses(params);
       
-      // Handle different response structures
+      // Handle PagedResult response from backend
       if (response.data.items) {
-        // Paginated response
         setCourses(response.data.items);
         setTotalPages(response.data.totalPages || 1);
         setTotalCourses(response.data.totalCount || 0);
       } else if (Array.isArray(response.data)) {
-        // Direct array response
         setCourses(response.data);
         setTotalPages(1);
         setTotalCourses(response.data.length);

@@ -1,5 +1,6 @@
 ﻿using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.DTOs.Category;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ByWay.API.Controllers
@@ -23,6 +24,7 @@ namespace ByWay.API.Controllers
         }
 
         [HttpGet("top")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<CategoryDto>>> GetTopCategories()
         {
             var categories = await _categoryService.GetTopCategoriesAsync();

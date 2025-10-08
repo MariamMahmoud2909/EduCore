@@ -2,11 +2,11 @@
 using ByWay.Application.Services;
 using ByWay.Core.Contracts.Interfaces;
 using ByWay.Core.Contracts.Repositories;
-using ByWay.Core.Contracts.Services;
 using ByWay.Core.Entities;
 using ByWay.Core.Mappings;
 using ByWay.Infrastructure.Data;
 using ByWay.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +32,10 @@ namespace ByWay.API.Extensions
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IEnrollmentService, EnrollmentService>();
+
             services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<MappingProfile>();
@@ -43,7 +47,7 @@ namespace ByWay.API.Extensions
         public static IServiceCollection AddAuthServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging());
-            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
@@ -52,7 +56,8 @@ namespace ByWay.API.Extensions
                 options.Password.RequireLowercase = false;
             })
                     .AddEntityFrameworkStores<ApplicationDbContext>()
-                    .AddDefaultTokenProviders();
+                    .AddDefaultTokenProviders()
+                    .AddRoles<IdentityRole<int>>();
             services.AddHttpClient();
             services.AddAuthentication(options =>
             {
@@ -60,7 +65,7 @@ namespace ByWay.API.Extensions
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-                        .AddJwtBearer(options =>
+                    .AddJwtBearer(options =>
                         {
                             options.TokenValidationParameters = new TokenValidationParameters
                             {
@@ -92,7 +97,38 @@ namespace ByWay.API.Extensions
                                     return Task.CompletedTask;
                                 }
                             };
-                        });
+                        })
+                    .AddGoogle(options =>
+                    {
+                        options.ClientId = configuration["Authentication:Google:ClientId"];
+                        options.ClientSecret = configuration["Authentication:Google:ClientSecret"];
+                        options.CallbackPath = "/api/auth/external-callback";
+                        options.SaveTokens = true;
+
+                        // Map additional claims
+                        options.ClaimActions.MapJsonKey("picture", "picture");
+                        options.ClaimActions.MapJsonKey("email_verified", "email_verified");
+                    })
+                    .AddFacebook(options =>
+                    {
+                        options.AppId = configuration["Authentication:Facebook:AppId"];
+                        options.AppSecret = configuration["Authentication:Facebook:AppSecret"];
+                        options.CallbackPath = "/api/auth/external-callback";
+                        options.SaveTokens = true;
+
+                        // Request additional fields
+                        options.Fields.Add("picture");
+                        options.Fields.Add("email");
+                    })
+                    .AddGitHub(options =>
+                    {
+                        options.ClientId = configuration["Authentication:GitHub:ClientId"];
+                        options.ClientSecret = configuration["Authentication:GitHub:ClientSecret"];
+                        options.CallbackPath = "/api/auth/external-callback";
+                        options.SaveTokens = true;
+                        options.Scope.Add("user:email");
+                    });
+
             return services;
         }
     }

@@ -2,7 +2,7 @@
 {
     public class Cart : BaseEntity
     {
-        public string UserId { get; set; }
+        public int UserId { get; set; }
         public int CourseId { get; set; }
 
         public DateTime AddedAt { get; set; }

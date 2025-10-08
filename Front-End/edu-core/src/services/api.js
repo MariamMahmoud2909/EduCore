@@ -43,109 +43,113 @@ api.interceptors.response.use(
 
 // Auth Services
 export const authService = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
-  getCurrentUser: () => api.get('/auth/me'),
+  login: (credentials) => api.post('/Auth/login', credentials),
+  register: (userData) => api.post('/Auth/register', userData),
+  //logout: () => api.post('/auth/logout'),
+  getCurrentUser: () => api.get('/Auth/me'),
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/';
-  }
+    window.location.href = '/';},
+  externalLogin: (provider) => api.get(`/Auth/external-login/${provider}`),
+  externalCallback: () => api.get('/Auth/external-callback'),
+  getExternalProviders: () => api.get('/Auth/external-providers'),
 };
 
-// Course Services
-export const courseService = {
-  getCourses: (params) => api.get('/courses', { params }),
-  getCourse: (id) => api.get(`/courses/${id}`),
-  getTopCourses: () => api.get('/courses/top'),
-  getFeaturedCourses: () => api.get('/courses/featured'),
-  getSimilarCourses: (id) => api.get(`/courses/${id}/similar`),
-  searchCourses: (query) => api.get('/courses/search', { params: { q: query } }),
-  createCourse: (data) => api.post('/courses', data),
-  updateCourse: (id, data) => api.put(`/courses/${id}`, data),
-  deleteCourse: (id) => api.delete(`/courses/${id}`),
-};
-
-// Instructor Services
-export const instructorService = {
-  getInstructors: (params) => api.get('/instructors', { params }),
-  getInstructor: (id) => api.get(`/instructors/${id}`),
-  getTopInstructors: () => api.get('/instructors/top'),
-  getInstructorCourses: (id) => api.get(`/instructors/${id}/courses`),
-  createInstructor: (data) => api.post('/instructors', data),
-  updateInstructor: (id, data) => api.put(`/instructors/${id}`, data),
-  deleteInstructor: (id) => api.delete(`/instructors/${id}`),
+// Cart Services
+export const cartService = {
+  addToCart: (courseId) => api.post('/Cart', { courseId }),
+  getCart: () => api.get('/Cart'),
+  removeFromCart: (courseId) => api.delete(`/Cart/${courseId}`),
+  clearCart: () => api.delete('/Cart'),
+  //updateQuantity: (courseId, quantity) => api.put(`/Cart/${courseId}`, { quantity }),
 };
 
 // Category Services
 export const categoryService = {
   getCategories: () => api.get('/categories'),
-  getCategory: (id) => api.get(`/categories/${id}`),
-  getTopCategories: () => api.get('/categories/top'),
-  getCategoryCourses: (id) => api.get(`/categories/${id}/courses`),
+  getCategory: (id) => api.get(`/Categories/${id}`),
+  getTopCategories: () => api.get('/Categories/top'),
+  //getCategoryCourses: (id) => api.get(`/categories/${id}/courses`),
 };
 
-// Cart Services
-export const cartService = {
-  addToCart: (courseId) => api.post('/cart/add', { courseId }),
-  getCart: () => api.get('/cart'),
-  removeFromCart: (courseId) => api.delete(`/cart/${courseId}`),
-  clearCart: () => api.delete('/cart/clear'),
-  updateQuantity: (courseId, quantity) => api.put(`/cart/${courseId}`, { quantity }),
-};
-
-// Order Services
-export const orderService = {
-  createOrder: (orderData) => api.post('/orders', orderData),
-  checkout: (paymentData) => api.post('/orders/checkout', paymentData),
-  getOrders: (params) => api.get('/orders', { params }),
-  getOrder: (id) => api.get(`/orders/${id}`),
-  getUserOrders: () => api.get('/orders/my-orders'),
-  updateOrderStatus: (id, status) => api.put(`/orders/${id}/status`, { status }),
+// Course Services
+export const courseService = {
+  getCourses: (params) => api.get('/Courses', { params }),
+  getCourse: (id) => api.get(`/Courses/${id}`),
+  getTopCourses: () => api.get('/Courses/TopCourses'),
+  getFeaturedCourses: () => api.get('/Courses/featured'),
+  getSimilarCourses: (id) => api.get(`/Courses/${id}/similar`),
+  searchCourses: (query) => api.get('/Courses/search', { params: { q: query } }),
+  createCourse: (data) => api.post('/Courses', data),
+  updateCourse: (id, data) => api.put(`/Courses/${id}`, data),
+  deleteCourse: (id) => api.delete(`/Courses/${id}`),
 };
 
 // Dashboard Services (Admin)
 export const dashboardService = {
-  getStats: () => api.get('/dashboard/stats'),
-  getRecentActivities: () => api.get('/dashboard/activities'),
-  getSalesReport: (period) => api.get('/dashboard/sales', { params: { period } }),
-  getPopularCourses: () => api.get('/dashboard/popular-courses'),
-};
-
-// User Services
-export const userService = {
-  getUsers: (params) => api.get('/users', { params }),
-  getUser: (id) => api.get(`/users/${id}`),
-  getUserProfile: () => api.get('/users/profile'),
-  updateUserProfile: (data) => api.put('/users/profile', data),
-  getUserStats: (id) => api.get(`/users/${id}/stats`),
-  deleteUser: (id) => api.delete(`/users/${id}`),
-  toggleAdminRole: (id, isAdmin) => api.put(`/users/${id}/toggle-admin`, { isAdmin }),
-  changePassword: (data) => api.put('/users/change-password', data),
-};
-
-// Review Services
-export const reviewService = {
-  getCourseReviews: (courseId, params) => api.get(`/courses/${courseId}/reviews`, { params }),
-  createReview: (courseId, reviewData) => api.post(`/courses/${courseId}/reviews`, reviewData),
-  updateReview: (reviewId, reviewData) => api.put(`/reviews/${reviewId}`, reviewData),
-  deleteReview: (reviewId) => api.delete(`/reviews/${reviewId}`),
+  getStats: () => api.get('/Dashboard/stats'),
+  getRecentActivities: () => api.get('/Dashboard/activities'),
+  getSalesReport: (period) => api.get('/Dashboard/sales', { params: { period } }),
+  getPopularCourses: () => api.get('/Dashboard/popular-courses'),
 };
 
 // Enrollment Services
 export const enrollmentService = {
-  enrollCourse: (courseId) => api.post('/enrollments', { courseId }),
-  getMyEnrollments: () => api.get('/enrollments/my-courses'),
-  getEnrollmentProgress: (courseId) => api.get(`/enrollments/${courseId}/progress`),
-  updateProgress: (courseId, progressData) => api.put(`/enrollments/${courseId}/progress`, progressData),
+  enrollCourse: (courseId) => api.post('/Enrollments', { courseId }),
+  getMyEnrollments: () => api.get('/Enrollments/my-courses'),
+  getEnrollmentProgress: (courseId) => api.get(`/Enrollments/${courseId}/progress`),
+  updateProgress: (courseId, progressData) => api.put(`/Enrollments/${courseId}/progress`, progressData),
+};
+
+// Instructor Services
+export const instructorService = {
+  getInstructors: (params) => api.get('/Instructors', { params }),
+  getInstructor: (id) => api.get(`/Instructors/${id}`),
+  getTopInstructors: () => api.get('/Instructors/top'),
+  getInstructorCourses: (id) => api.get(`/Instructors/${id}/courses`),
+  createInstructor: (data) => api.post('/Instructors', data),
+  updateInstructor: (id, data) => api.put(`/Instructors/${id}`, data),
+  deleteInstructor: (id) => api.delete(`/Instructors/${id}`),
+};
+
+// Order Services
+export const orderService = {
+  createOrder: (orderData) => api.post('/Orders', orderData),
+  checkout: (paymentData) => api.post('/Orders/checkout', paymentData),
+  getOrders: (params) => api.get('/Orders', { params }),
+  getOrder: (id) => api.get(`/Orders/${id}`),
+  getUserOrders: () => api.get('/Orders/my-orders'),
+  updateOrderStatus: (id, status) => api.put(`/Orders/${id}/status`, { status }),
 };
 
 // Payment Services
 export const paymentService = {
-  processPayment: (paymentData) => api.post('/payments/process', paymentData),
-  getPaymentMethods: () => api.get('/payments/methods'),
-  savePaymentMethod: (methodData) => api.post('/payments/methods', methodData),
-  deletePaymentMethod: (methodId) => api.delete(`/payments/methods/${methodId}`),
+  processPayment: (paymentData) => api.post('/Payments/process', paymentData),
+  getPaymentMethods: () => api.get('/Payments/methods'),
+  savePaymentMethod: (methodData) => api.post('/Payments/methods', methodData),
+  deletePaymentMethod: (methodId) => api.delete(`/Payments/methods/${methodId}`),
+};
+
+// Review Services
+export const reviewService = {
+  getCourseReviews: (courseId, params) => api.get(`/courses/${courseId}/Reviews`, { params }),
+  createReview: (courseId, reviewData) => api.post(`/courses/${courseId}/Reviews`, reviewData),
+  getCourseReviewById: (reviewId) => api.put(`/courses/${courseId}/Reviews/${reviewId}`),
+  updateReview: (reviewId, reviewData) => api.put(`/courses/${courseId}/Reviews/${reviewId}`, reviewData),
+  deleteReview: (reviewId) => api.delete(`/courses/${courseId}/Reviews/${reviewId}`),
+};
+
+// User Services
+export const userService = {
+  getUsers: (params) => api.get('/Users', { params }),
+  getUser: (id) => api.get(`/Users/${id}`),
+  getUserProfile: () => api.get('/Users/profile'),
+  updateUserProfile: (data) => api.put('/Users/profile', data),
+  getUserStats: (id) => api.get(`/Users/${id}/stats`),
+  deleteUser: (id) => api.delete(`/Users/${id}`),
+  toggleAdminRole: (id, isAdmin) => api.put(`/Users/${id}/toggle-admin`, { isAdmin }),
+  changePassword: (data) => api.put('/Users/change-password', data),
 };
 
 export default api;

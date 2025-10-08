@@ -19,10 +19,18 @@ namespace ByWay.API.Controllers
             _cartService = cartService;
         }
 
+        private int GetUserId()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out int userId))
+                throw new UnauthorizedAccessException("Invalid user ID");
+            return userId;
+        }
+
         [HttpGet]
         public async Task<ActionResult<List<CourseDto>>> GetCart()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = GetUserId();
             var cart = await _cartService.GetCartAsync(userId!);
             return Ok(cart);
         }
@@ -30,7 +38,7 @@ namespace ByWay.API.Controllers
         [HttpPost]
         public async Task<ActionResult> AddToCart([FromBody] AddToCartDto dto)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = GetUserId();
             var success = await _cartService.AddToCartAsync(userId!, dto.CourseId);
 
             if (!success)
@@ -42,7 +50,7 @@ namespace ByWay.API.Controllers
         [HttpDelete("{courseId}")]
         public async Task<ActionResult> RemoveFromCart(int courseId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = GetUserId();
             var success = await _cartService.RemoveFromCartAsync(userId!, courseId);
 
             if (!success)
@@ -54,7 +62,7 @@ namespace ByWay.API.Controllers
         [HttpDelete]
         public async Task<ActionResult> ClearCart()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = GetUserId();
             await _cartService.ClearCartAsync(userId!);
             return Ok();
         }

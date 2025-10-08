@@ -47,10 +47,9 @@ const LoginPage = () => {
   };
 
   const handleSocialLogin = (provider) => {
-    toast.info(`${provider} login will be implemented with OAuth`);
-    // TODO: Implement OAuth flow for social login
-    // window.location.href = `${API_URL}/auth/${provider}`;
-  };
+  const backendUrl = 'https://localhost:7128';
+  window.location.href = `${backendUrl}/api/auth/login/${provider}`;
+};
 
   return (
     <div className="auth-page">
@@ -73,21 +72,21 @@ const LoginPage = () => {
                     <BSButton 
                       variant="outline-danger"
                       className="social-btn"
-                      onClick={() => handleSocialLogin('google')}
+                      onClick={() => handleSocialLogin('Google')}
                     >
                       <FaGoogle /> Continue with Google
                     </BSButton>
                     <BSButton 
                       variant="outline-primary"
                       className="social-btn"
-                      onClick={() => handleSocialLogin('facebook')}
+                      onClick={() => handleSocialLogin('Facebook')}
                     >
                       <FaFacebook /> Continue with Facebook
                     </BSButton>
                     <BSButton 
                       variant="outline-dark"
                       className="social-btn"
-                      onClick={() => handleSocialLogin('github')}
+                      onClick={() => handleSocialLogin('GitHub')}
                     >
                       <FaGithub /> Continue with GitHub
                     </BSButton>

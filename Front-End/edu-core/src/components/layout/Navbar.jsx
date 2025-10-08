@@ -40,7 +40,6 @@ const Navbar = () => {
           <div className="navbar-actions">
             {isAuthenticated ? (
               <>
-                {/* Shopping Cart */}
                 <Link to="/cart" className="nav-icon-btn">
                   <FiShoppingCart size={22} />
                   {cartCount > 0 && (
@@ -65,6 +64,12 @@ const Navbar = () => {
                         <p className="profile-email">{user?.email}</p>
                       </div>
                       <div className="profile-divider"></div>
+                      
+                        <Link to="/my-courses" className="profile-menu-item" onClick={() => setProfileMenuOpen(false)}>
+                          <FiBook size={18} />
+                            <span>My Courses</span>
+                        </Link>          
+            
                       {isAdmin && (
                         <Link to="/admin/dashboard" className="profile-menu-item" onClick={() => setProfileMenuOpen(false)}>
                           <FiSettings size={18} />
