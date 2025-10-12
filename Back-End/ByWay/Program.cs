@@ -369,13 +369,9 @@ namespace ByWay.API
                 options.AddPolicy("Production",
                     policy =>
                     {
-                        policy.WithOrigins(
-                            "https://algoriza-internship2025-fs172-fe-byway-8zux01fxz.vercel.app",
-                            "https://mariam2909-001-site1.anytempurl.com"
-                        )
+                        policy.AllowAnyOrigin()
                         .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
+                        .AllowAnyMethod();
                     });
 
                 options.AddPolicy("Development",
@@ -424,9 +420,17 @@ namespace ByWay.API
                 await next();
             });
 
-            // Routing and other middleware
-            app.UseRouting();
             app.UseStaticFiles();
+
+            var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "images");
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(imagesPath),
+                RequestPath = "/images"
+            });
+
+            app.UseRouting();
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -436,10 +440,6 @@ namespace ByWay.API
             app.UseAuthorization();
             app.MapControllers();
 
-            // Test endpoint
-            app.MapGet("/", () => "ByWay API is running!");
-
-            // Safe database seeding
             try
             {
                 using (var scope = app.Services.CreateScope())

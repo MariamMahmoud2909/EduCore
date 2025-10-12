@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
-import { FiShoppingCart, FiUser, FiMenu, FiX, FiLogOut, FiSettings } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiMenu, FiX, FiLogOut, FiLayoutDashboard, FiBook } from 'react-icons/fi';
 import { userAtom, isAuthenticatedAtom, isAdminAtom, cartCountAtom } from '../../store/atoms';
-import { authService } from '../../services/api';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -16,20 +15,26 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    authService.logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('cart');
+    setProfileMenuOpen(false);
+    setMobileMenuOpen(false);
+    navigate('/');
   };
 
   return (
     <nav className="navbar">
-      <div className="container">
+      <div className="navbar-container">
         <div className="navbar-content">
           {/* Logo */}
           <Link to="/" className="navbar-logo">
-            <span className="logo-text">ByWay</span>
+            <span className="logo-text">By</span>
+            <span className="logo-text-accent">Way</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="navbar-links desktop-only">
+          <div className="navbar-links">
             <Link to="/" className="nav-link">Home</Link>
             <Link to="/courses" className="nav-link">Courses</Link>
             <Link to="/about" className="nav-link">About</Link>
@@ -40,8 +45,9 @@ const Navbar = () => {
           <div className="navbar-actions">
             {isAuthenticated ? (
               <>
-                <Link to="/cart" className="nav-icon-btn">
-                  <FiShoppingCart size={22} />
+                {/* Cart Button */}
+                <Link to="/cart" className="nav-icon-btn cart-btn" title="Shopping Cart">
+                  <FiShoppingCart size={24} />
                   {cartCount > 0 && (
                     <span className="cart-badge">{cartCount}</span>
                   )}
@@ -52,32 +58,71 @@ const Navbar = () => {
                   <button 
                     className="profile-btn"
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                    title="User Menu"
                   >
-                    <FiUser size={22} />
-                    <span className="desktop-only">{user?.firstName}</span>
+                    <div className="user-avatar">
+                      {user?.firstName?.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="user-name">{user?.firstName}</span>
                   </button>
 
                   {profileMenuOpen && (
                     <div className="profile-dropdown">
-                      <div className="profile-info">
-                        <p className="profile-name">{user?.firstName} {user?.lastName}</p>
-                        <p className="profile-email">{user?.email}</p>
+                      {/* Profile Header */}
+                      <div className="profile-header">
+                        <div className="profile-avatar-large">
+                          {user?.firstName?.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="profile-header-text">
+                          <p className="profile-name">
+                            {user?.firstName} {user?.lastName}
+                          </p>
+                          <p className="profile-email">{user?.email}</p>
+                          {isAdmin && (
+                            <span className="admin-badge">Admin</span>
+                          )}
+                        </div>
                       </div>
+
                       <div className="profile-divider"></div>
-                      
-                        <Link to="/my-courses" className="profile-menu-item" onClick={() => setProfileMenuOpen(false)}>
-                          <FiBook size={18} />
-                            <span>My Courses</span>
-                        </Link>          
-            
-                      {isAdmin && (
-                        <Link to="/admin/dashboard" className="profile-menu-item" onClick={() => setProfileMenuOpen(false)}>
-                          <FiSettings size={18} />
-                          <span>Admin Dashboard</span>
+
+                      {/* Menu Items */}
+                      <div className="profile-menu-items">
+                        <Link 
+                          to="/my-courses" 
+                          className="profile-menu-item" 
+                          onClick={() => setProfileMenuOpen(false)}
+                        >
+                          <FiBook size={20} />
+                          <div>
+                            <span className="item-label">My Courses</span>
+                            <span className="item-hint">Your enrolled courses</span>
+                          </div>
                         </Link>
-                      )}
-                      <button onClick={handleLogout} className="profile-menu-item danger">
-                        <FiLogOut size={18} />
+
+                        {isAdmin && (
+                          <Link 
+                            to="/admin/dashboard" 
+                            className="profile-menu-item admin-item"
+                            onClick={() => setProfileMenuOpen(false)}
+                          >
+                            <FiLayoutDashboard size={20} />
+                            <div>
+                              <span className="item-label">Admin Dashboard</span>
+                              <span className="item-hint">Manage platform</span>
+                            </div>
+                          </Link>
+                        )}
+                      </div>
+
+                      <div className="profile-divider"></div>
+
+                      {/* Logout Button */}
+                      <button 
+                        onClick={handleLogout} 
+                        className="profile-logout-btn"
+                      >
+                        <FiLogOut size={20} />
                         <span>Logout</span>
                       </button>
                     </div>
@@ -86,17 +131,22 @@ const Navbar = () => {
               </>
             ) : (
               <div className="auth-buttons">
-                <Link to="/login" className="btn btn-ghost">Login</Link>
-                <Link to="/register" className="btn btn-primary">Sign Up</Link>
+                <Link to="/login" className="btn btn-outline">
+                  Login
+                </Link>
+                <Link to="/register" className="btn btn-primary">
+                  Sign Up
+                </Link>
               </div>
             )}
 
             {/* Mobile Menu Toggle */}
             <button 
-              className="mobile-menu-btn mobile-only"
+              className="mobile-menu-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              title="Toggle Menu"
             >
-              {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+              {mobileMenuOpen ? <FiX size={28} /> : <FiMenu size={28} />}
             </button>
           </div>
         </div>
@@ -104,10 +154,50 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="mobile-menu">
-            <Link to="/" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Home</Link>
-            <Link to="/courses" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Courses</Link>
-            <Link to="/about" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>About</Link>
-            <Link to="/contact" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+            <div className="mobile-menu-links">
+              <Link to="/" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                Home
+              </Link>
+              <Link to="/courses" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                Courses
+              </Link>
+              <Link to="/about" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                About
+              </Link>
+              <Link to="/contact" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                Contact
+              </Link>
+            </div>
+
+            {isAuthenticated && (
+              <div className="mobile-menu-footer">
+                <Link 
+                  to="/my-courses" 
+                  className="mobile-menu-item"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FiBook size={20} />
+                  My Courses
+                </Link>
+                {isAdmin && (
+                  <Link 
+                    to="/admin/dashboard" 
+                    className="mobile-menu-item"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FiLayoutDashboard size={20} />
+                    Admin Dashboard
+                  </Link>
+                )}
+                <button 
+                  onClick={handleLogout}
+                  className="mobile-menu-item logout-item"
+                >
+                  <FiLogOut size={20} />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

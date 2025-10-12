@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 //const API_BASE_URL = 'https://localhost:7128/api';
-const API_BASE_URL = 'http://mariam2909-001-site1.anytempurl.com/';
+const API_BASE_URL = 'https://mariam2909-001-site1.anytempurl.com/api';
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

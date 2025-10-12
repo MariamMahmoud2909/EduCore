@@ -2,7 +2,8 @@ import React from 'react';
 import { Button, Badge, Table } from 'react-bootstrap';
 import { FiEdit, FiTrash2, FiMail } from 'react-icons/fi';
 import './AdminTables.css';
-
+const API_BASE_URL = 'https://mariam2909-001-site1.anytempurl.com/api';
+const BASE_URL = "https://mariam2909-001-site1.anytempurl.com";
 const InstructorTable = ({ instructors, onEdit, onDelete }) => {
   const getJobTitle = (jobTitle) => {
     const titles = {
@@ -42,11 +43,22 @@ const InstructorTable = ({ instructors, onEdit, onDelete }) => {
           {instructors.map((instructor) => (
             <tr key={instructor.id}>
               <td>
-                <img 
-                  src={instructor.image || `https://ui-avatars.com/api/?name=${instructor.firstName}+${instructor.lastName}&size=40&background=1E3A8A&color=fff`} 
+                {/* <img 
+                  //src={instructor.image || `https://ui-avatars.com/api/?name=${instructor.firstName}+${instructor.lastName}&size=40&background=1E3A8A&color=fff`} 
+                  src={instructor.image.startsWith('/images/') 
+    ? instructor.image 
+    : `/images/instructors/${instructor.image}`} 
                   alt={`${instructor.firstName} ${instructor.lastName}`}
-                  className="table-avatar"
-                />
+                  className="table-avatar" */}
+                {/* /> */}
+                  console.log("{instructor.image}");
+                  <img
+                    src={`${BASE_URL}/images/instructors/${instructor.image}`}
+                    alt={`${instructor.firstName} ${instructor.lastName}`}
+
+                    className="table-avatar"
+                  />
+
               </td>
               <td className="fw-semibold">
                 {instructor.firstName} {instructor.lastName}
