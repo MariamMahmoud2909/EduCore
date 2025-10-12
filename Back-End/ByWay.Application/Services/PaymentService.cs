@@ -53,9 +53,6 @@ namespace ByWay.Application.Services
                 {
                     if (string.IsNullOrEmpty(dto.CardNumber) || dto.CardNumber.Length < 16)
                         throw new InvalidOperationException("Invalid card number");
-
-                    // In real implementation, call payment gateway API here
-                    // Example: Stripe, PayPal, etc.
                 }
 
                 payment.Status = PaymentStatus.Succeeded;
