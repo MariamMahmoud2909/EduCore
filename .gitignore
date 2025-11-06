@@ -5,3 +5,8 @@
 /.vs
 Back-End/ByWay/appsettings.json
 Back-End/ByWay/appsettings.Development.json
+/ByWay.Infrastructure/obj
+/ByWay.Core/obj
+/ByWay.Application/obj
+/ByWay
+/ByWay.sln
