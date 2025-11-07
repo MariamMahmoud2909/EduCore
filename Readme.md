@@ -72,3 +72,7 @@ npm run dev
 4. Visit:
   Backend: https://localhost:5149
   Frontend: http://localhost:3000
+  
+5. Live Front URL: https://educore-marketly.netlify.app/
+
+6. Live Swagger Documentation: https://mariam2909-001-site1.anytempurl.com/swagger/index.html
