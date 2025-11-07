@@ -23,6 +23,10 @@ namespace ByWay.Infrastructure.Data
             builder.ApplyConfiguration(new OrderConfiguration());
             builder.ApplyConfiguration(new OrderItemConfiguration());
             builder.ApplyConfiguration(new ReviewConfiguration());
+            builder.ApplyConfiguration(new ActivityConfiguration());
+            builder.ApplyConfiguration(new EnrollmentConfiguration());
+            builder.ApplyConfiguration(new PaymentConfiguration());
+            builder.ApplyConfiguration(new PaymentMethodConfiguration());
 
             builder.Entity<ApplicationUser>().ToTable("Users");
             builder.Entity<IdentityRole>().ToTable("Roles");
@@ -32,6 +36,8 @@ namespace ByWay.Infrastructure.Data
             builder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
             builder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
         }
+
+        #region DbSets
 
         public DbSet<Category> Categories { get; set; }
         public DbSet<Instructor> Instructors { get; set; }
@@ -44,6 +50,8 @@ namespace ByWay.Infrastructure.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<Activity> Activities { get; set; }
+
+        #endregion
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
