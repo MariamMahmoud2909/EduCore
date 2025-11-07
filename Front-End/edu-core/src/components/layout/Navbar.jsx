@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
-import { FiShoppingCart, FiUser, FiMenu, FiX, FiLogOut, FiLayoutDashboard, FiBook } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiMenu, FiX, FiLogOut, FiBook } from 'react-icons/fi';
 import { userAtom, isAuthenticatedAtom, isAdminAtom, cartCountAtom } from '../../store/atoms';
+import { MdDashboard } from 'react-icons/md';
 import './Navbar.css';
+import { 
+  searchQueryAtom, 
+  selectedCategoryAtom, 
+  sortByAtom,
+  currentPageAtom,
+  itemsPerPageAtom 
+} from '../../store/atoms';
 
 const Navbar = () => {
   const [user] = useAtom(userAtom);
@@ -29,8 +37,8 @@ const Navbar = () => {
         <div className="navbar-content">
           {/* Logo */}
           <Link to="/" className="navbar-logo">
-            <span className="logo-text">By</span>
-            <span className="logo-text-accent">Way</span>
+            {/* <span className="logo-text">Edu</span> */}
+            <span className="logo-text-accent">EduCore</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -106,7 +114,7 @@ const Navbar = () => {
                             className="profile-menu-item admin-item"
                             onClick={() => setProfileMenuOpen(false)}
                           >
-                            <FiLayoutDashboard size={20} />
+                            <MdDashboard size={20} />
                             <div>
                               <span className="item-label">Admin Dashboard</span>
                               <span className="item-hint">Manage platform</span>
@@ -185,7 +193,7 @@ const Navbar = () => {
                     className="mobile-menu-item"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <FiLayoutDashboard size={20} />
+                    <MdDashboard size={20} />
                     Admin Dashboard
                   </Link>
                 )}

@@ -19,7 +19,7 @@ const Sidebar = () => {
   return (
     <div className="admin-sidebar">
       <div className="sidebar-header">
-        <h2 className="sidebar-logo">ByWay Admin</h2>
+        <h2 className="sidebar-logo">EduCore Admin</h2>
       </div>
 
       <nav className="sidebar-nav">

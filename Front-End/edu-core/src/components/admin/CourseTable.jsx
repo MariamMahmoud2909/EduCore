@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Badge, Table } from 'react-bootstrap';
 import { FiEdit, FiTrash2, FiEye } from 'react-icons/fi';
 import './AdminTables.css';
-
+const BASE_URL = "https://mariam2909-001-site1.anytempurl.com";
 const CourseTable = ({ courses, onEdit, onDelete, onView }) => {
   const getLevelBadge = (level) => {
     const badges = {
@@ -37,7 +37,9 @@ const CourseTable = ({ courses, onEdit, onDelete, onView }) => {
               <tr key={course.id}>
                 <td>
                   <img 
-                    src={course.image || 'https://via.placeholder.com/60x40'} 
+                    src={`${BASE_URL}${course.image}`}
+                    //src={`${BASE_URL}/assets/images/courses/${course.image}`}
+                    //src={course.image || 'https://via.placeholder.com/60x40'} 
                     alt={course.title}
                     className="table-image"
                   />

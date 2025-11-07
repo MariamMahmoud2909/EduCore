@@ -10,7 +10,13 @@ const InstructorTable = ({ instructors, onEdit, onDelete }) => {
       1: 'Fullstack Developer',
       2: 'Backend Developer',
       3: 'Frontend Developer',
-      4: 'UX/UI Designer'
+      4: 'UX/UI Designer',
+      5: 'AiEngineer',
+      6: 'DataScientist',
+      7: 'MobileDeveloper',
+      8: 'MarketingSpecialist',
+      9: 'CloudEngineer',
+      10:'SecurityAnalyst'
     };
     return titles[jobTitle] || 'Unknown';
   };
@@ -51,9 +57,9 @@ const InstructorTable = ({ instructors, onEdit, onDelete }) => {
                   alt={`${instructor.firstName} ${instructor.lastName}`}
                   className="table-avatar" */}
                 {/* /> */}
-                  console.log("{instructor.image}");
                   <img
-                    src={`${BASE_URL}/images/instructors/${instructor.image}`}
+                      src={`${BASE_URL}${instructor.image}`}
+                      s//rc={`${BASE_URL}/assets/images/instructors/${instructor.image}`}
                     alt={`${instructor.firstName} ${instructor.lastName}`}
 
                     className="table-avatar"

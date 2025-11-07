@@ -2,15 +2,17 @@ import React from 'react';
 import { Card, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FiStar, FiUsers, FiClock } from 'react-icons/fi';
-
+const BASE_URL = "https://mariam2909-001-site1.anytempurl.com";
 const CourseCard = ({ course }) => {
   return (
     <Card className="course-card h-100">
-      <Card.Img 
+      <div className="course-image">
+        <Card.Img 
         variant="top" 
-        src={course.imageUrl || 'https://via.placeholder.com/400x250'} 
-        alt={course.title}
+          src={`${BASE_URL}${course.image}`}
+          alt={course.title}
       />
+      </div>
       <Card.Body>
         <div className="course-category mb-2">
           {course.category?.name || course.categoryName || 'General'}

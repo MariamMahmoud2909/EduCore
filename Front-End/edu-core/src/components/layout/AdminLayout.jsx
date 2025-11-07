@@ -12,11 +12,11 @@ const AdminLayout = () => {
       <Sidebar />
       <div className="admin-content">
         <Routes>
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          {/* <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="courses" element={<AdminCourses />} />
           <Route path="instructors" element={<AdminInstructors />} />
-          <Route path="users" element={<AdminUsers />} />
+          <Route path="users" element={<AdminUsers />} /> */}
           <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
         </Routes>
       </div>

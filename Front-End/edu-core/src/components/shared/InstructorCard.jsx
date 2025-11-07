@@ -1,14 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import './InstructorCard.css';
-
+const BASE_URL = "https://mariam2909-001-site1.anytempurl.com";
 const InstructorCard = ({ instructor, delay = 0 }) => {
   const getJobTitleName = (jobTitle) => {
     const titles = {
-      1: 'Fullstack Developer',
-      2: 'Backend Developer',
-      3: 'Frontend Developer',
-      4: 'UX/UI Designer'
+    1: 'Fullstack Developer',
+    2: 'Backend Developer',
+    3: 'Frontend Developer',
+    4: 'UX/UI Designer',
+    5: 'AiEngineer',
+    6: 'DataScientist',
+    7: 'MobileDeveloper',
+    8: 'MarketingSpecialist',
+    9: 'CloudEngineer',
+    10:'SecurityAnalyst'
     };
     return titles[jobTitle] || 'Instructor';
   };
@@ -23,7 +29,8 @@ const InstructorCard = ({ instructor, delay = 0 }) => {
     >
       <div className="instructor-image">
         <img 
-          src={instructor.image || `https://ui-avatars.com/api/?name=${instructor.firstName}+${instructor.lastName}&size=200&background=1E3A8A&color=fff`} 
+            src={`${BASE_URL}${instructor.image}`}
+            //src={`${BASE_URL}/assets/images/instructors/${instructor.image}`}
           alt={`${instructor.firstName} ${instructor.lastName}`}
         />
       </div>
