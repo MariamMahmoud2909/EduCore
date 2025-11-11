@@ -7,7 +7,7 @@ import CourseTable from '../../components/admin/CourseTable';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import { courseService, instructorService, categoryService } from '../../services/api';
 import './AdminPages.css';
-
+const BASE_URL = "https://mariam2909-001-site1.anytempurl.com";
 const AdminCourses = () => {
   const [courses, setCourses] = useState([]);
   const [instructors, setInstructors] = useState([]);
@@ -69,7 +69,7 @@ const AdminCourses = () => {
         duration: course.duration.toString(),
         categoryId: course.categoryId?.toString() || '',
         instructorId: course.instructorId,
-        image: course.image || ''
+        image: "${BASE_URL}${course.image}`}" || ''
       });
     } else {
       setEditingCourse(null);

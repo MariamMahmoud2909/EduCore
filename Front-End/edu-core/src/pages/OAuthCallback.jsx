@@ -1,57 +1,78 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAtom } from 'jotai';
+import { userAtom } from '../store/atoms';
+import { authService } from '../services/api';
 import { toast } from 'react-toastify';
-import { userAtom, tokenAtom } from '../store/atoms';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [, setUser] = useAtom(userAtom);
-  const [, setToken] = useAtom(tokenAtom);
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    const provider = searchParams.get('provider');
-    const error = searchParams.get('error');
-
-    if (error) {
-      toast.error(`Authentication failed: ${error}`);
-      navigate('/login');
-      return;
-    }
-
-    if (token) {
-      // Save token and decode user info
-      localStorage.setItem('token', token);
-      setToken(token);
-
-      // Decode JWT to get user info (simple base64 decode)
+    const handleOAuthCallback = async () => {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const userData = {
-          id: payload.nameid || payload.sub,
-          email: payload.email,
-          name: payload.name || payload.unique_name,
-          role: payload.role || 'Student',
-          isAdmin: payload.role === 'Admin'
-        };
+        // Get the URL parameters
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
+        const error = searchParams.get('error');
+
+        console.log('OAuth callback received:', { code, state, error });
+
+        if (error) {
+          toast.error(`OAuth error: ${error}`);
+          navigate('/login');
+          return;
+        }
+
+        if (!code) {
+          toast.error('Authentication failed. No authorization code received.');
+          navigate('/login');
+          return;
+        }
+
+        // Exchange the code for a token
+        console.log('Exchanging OAuth code for token...');
+        const response = await authService.exchangeOAuthCode({ code, state });
+        const userData = response.data;
+
+        console.log('OAuth login successful:', userData);
         
+        // Store token and user data
+        localStorage.setItem('token', userData.token);
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
+        
+        toast.success('Login successful!');
 
-        toast.success(`Welcome! Logged in with ${provider}`);
-        navigate('/');
-      } catch (err) {
-        console.error('Error decoding token:', err);
-        toast.error('Authentication failed');
+        // Get redirect path from localStorage or use default
+        const redirectPath = localStorage.getItem('redirectAfterLogin') || '/';
+        localStorage.removeItem('redirectAfterLogin');
+
+        // Redirect based on user role
+        if (userData.roles && userData.roles.includes('Admin')) {
+          console.log('OAuth user is admin, redirecting to admin dashboard');
+          navigate('/admin/dashboard', { replace: true });
+        } else if (userData.roles && userData.roles.includes('Instructor')) {
+          console.log('OAuth user is instructor, redirecting to instructor dashboard');
+          navigate('/instructor/dashboard', { replace: true });
+        } else {
+          console.log('OAuth user is regular user, redirecting to:', redirectPath);
+          navigate(redirectPath, { replace: true });
+        }
+
+      } catch (error) {
+        console.error('OAuth callback error:', error);
+        const errorMessage = error.response?.data?.message || error.response?.data || 'Authentication failed. Please try again.';
+        toast.error(errorMessage);
         navigate('/login');
       }
-    } else {
-      navigate('/login');
-    }
-  }, [searchParams, navigate, setUser, setToken]);
+    };
+
+    handleOAuthCallback();
+  }, [navigate, searchParams, setUser]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

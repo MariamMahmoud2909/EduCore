@@ -10,7 +10,7 @@ const Footer = () => {
         <div className="footer-content">
           {/* Column 1: About */}
           <div className="footer-column">
-            <h3 className="footer-logo">ByWay</h3>
+            <h3 className="footer-logo">EduCore</h3>
             <p className="footer-description">
               Empowering learners worldwide with quality education. Start your learning journey today.
             </p>
@@ -46,9 +46,9 @@ const Footer = () => {
             <h4 className="footer-title">Categories</h4>
             <ul className="footer-links">
               <li><Link to="/courses?category=1">Development</Link></li>
-              <li><Link to="/courses?category=2">Design</Link></li>
-              <li><Link to="/courses?category=3">Business</Link></li>
-              <li><Link to="/courses?category=4">Marketing</Link></li>
+              <li><Link to="/courses?category=4">Design</Link></li>
+              <li><Link to="/courses?category=5">Artificial Intelligence</Link></li>
+              <li><Link to="/courses?category=8">Marketing</Link></li>
             </ul>
           </div>
 
@@ -66,7 +66,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="footer-bottom">
-          <p>&copy; 2024 ByWay. All rights reserved.</p>
+          <p>&copy; 2025 EduCore. All rights reserved.</p>
         </div>
       </div>
     </footer>

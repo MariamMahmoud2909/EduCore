@@ -11,9 +11,10 @@ import { toast } from 'react-toastify';
 import { courseService, cartService, reviewService } from '../services/api';
 import { userAtom, cartAtom, isAuthenticatedAtom } from '../store/atoms';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import CourseCard from '../components/courses/CourseCard';
+import CourseCard from '../components/shared/CourseCard';
 import './CourseDetailPage.css';
 
+const BASE_URL = "https://mariam2909-001-site1.anytempurl.com";
 const CourseDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -115,7 +116,7 @@ const CourseDetailPage = () => {
     <div className="course-detail-page">
       {/* Hero Section */}
       <div className="course-hero" style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${course.imageUrl || 'https://via.placeholder.com/1200x400'})`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${BASE_URL}${course.imageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}>
@@ -151,7 +152,10 @@ const CourseDetailPage = () => {
 
                 <div className="course-instructor">
                   <img 
-                    src={course.instructor?.imageUrl || 'https://via.placeholder.com/50'} 
+                      src={'https://via.placeholder.com/50'}
+                      //`${BASE_URL}${instructor?.imageUrl}`|| 
+                      //src={`${BASE_URL}/assets/images/instructors/${instructor.imageUrl}`}
+                    //src={course.instructor?.imageUrl || 'https://via.placeholder.com/50'} 
                     alt={course.instructor?.name || course.instructorName}
                     className="instructor-avatar"
                   />
@@ -239,9 +243,9 @@ const CourseDetailPage = () => {
                       <div className="curriculum-list">
                         {(course.modules || [
                           { title: 'Introduction', lessons: 5, duration: '1 hour' },
-                          { title: 'Core Concepts', lessons: 8, duration: '3 hours' },
+                          { title: 'Core Concepts', lessons: 8, duration: '5 hours' },
                           { title: 'Advanced Topics', lessons: 10, duration: '4 hours' },
-                          { title: 'Final Project', lessons: 3, duration: '2 hours' }
+                          { title: 'Final Project', lessons: 3, duration: '3 hours' }
                         ]).map((module, index) => (
                           <div key={index} className="curriculum-module">
                             <div className="module-header">
@@ -265,7 +269,10 @@ const CourseDetailPage = () => {
                     <Card.Body>
                       <div className="instructor-profile">
                         <img
-                          src={course.instructor?.imageUrl || 'https://via.placeholder.com/150'}
+                          //src={`${BASE_URL}${instructor.image}`}
+                          src = {'https://via.placeholder.com/50'}
+                          //src={`${BASE_URL}/assets/images/instructors/${instructor.imageUrl}`}
+                          //src={course.instructor?.imageUrl || 'https://via.placeholder.com/150'}
                           alt={course.instructor?.name || course.instructorName}
                           className="instructor-profile-image"
                         />
@@ -337,7 +344,9 @@ const CourseDetailPage = () => {
               <Card className="course-sidebar-card sticky-top">
                 <div className="course-preview">
                   <img
-                    src={course.imageUrl || 'https://via.placeholder.com/400x300'}
+                    src={`${BASE_URL}${course.imageUrl}`}
+                    //src={`${BASE_URL}/assets/images/courses/${course.imageUrl}`}
+                    //src={course.imageUrl || 'https://via.placeholder.com/400x300'}
                     alt={course.title}
                     className="preview-image"
                   />

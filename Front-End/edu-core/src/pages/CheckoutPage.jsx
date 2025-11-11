@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { useAtom } from 'jotai';
 import { motion } from 'framer-motion';
-import { FiCreditCard, FiLock, FiUser, FiMail, FiMapPin } from 'react-icons/fi';
+import { FiCreditCard, FiLock, FiUser } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { orderService, cartService } from '../services/api';
 import { cartAtom, userAtom } from '../store/atoms';
@@ -14,17 +14,18 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const [cart, setCart] = useAtom(cartAtom);
   const [user] = useAtom(userAtom);
-  const [loading, setLoading] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
 
+  const TAX_RATE = 0.15;
+
   const [billingInfo, setBillingInfo] = useState({
-    fullName: user?.name || '',
+    fullName: user?.firstName ? `${user.firstName} ${user.lastName}`.trim() : '',
     email: user?.email || '',
     phone: '',
     address: '',
     city: '',
-    state: '',
-    zipCode: '',
+    state: 'cairo',
+    zipCode: '12111',
     country: ''
   });
 
@@ -33,15 +34,37 @@ const CheckoutPage = () => {
     cardName: '',
     expiryDate: '',
     cvv: '',
-    paymentMethod: 'credit_card' // credit_card, paypal, stripe
+    paymentMethod: 'CreditCard'
   });
 
+  // Get cart items safely
+  const getCartItems = () => {
+    if (!cart) return [];
+    if (Array.isArray(cart)) return cart;
+    if (cart.items && Array.isArray(cart.items)) return cart.items;
+    return [];
+  };
+
+  const cartItems = getCartItems();
+
   useEffect(() => {
-    if (cart.length === 0) {
+    if (cartItems.length === 0) {
       toast.info('Your cart is empty');
       navigate('/courses');
     }
-  }, [cart, navigate]);
+  }, [cartItems, navigate]);
+
+  // Calculate totals
+  const calculateSubtotal = () => {
+    return cartItems.reduce((sum, item) => {
+      const price = item.price || item.course?.price || 0;
+      return sum + price;
+    }, 0);
+  };
+
+  const subtotal = calculateSubtotal();
+  const tax = subtotal * TAX_RATE;
+  const total = subtotal + tax;
 
   const handleBillingChange = (e) => {
     setBillingInfo({
@@ -54,17 +77,14 @@ const CheckoutPage = () => {
     let value = e.target.value;
     const name = e.target.name;
 
-    // Format card number
     if (name === 'cardNumber') {
       value = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
     }
 
-    // Format expiry date
     if (name === 'expiryDate') {
       value = value.replace(/\//g, '').replace(/(\d{2})(\d{0,2})/, '$1/$2').substring(0, 5);
     }
 
-    // Limit CVV to 3-4 digits
     if (name === 'cvv') {
       value = value.replace(/\D/g, '').substring(0, 4);
     }
@@ -76,63 +96,31 @@ const CheckoutPage = () => {
   };
 
   const validateForm = () => {
-    // Validate billing info
-    if (!billingInfo.fullName || !billingInfo.email || !billingInfo.phone) {
-      toast.error('Please fill in all required billing information');
+    if (!billingInfo.fullName || !billingInfo.email) {
+      toast.error('Please fill in full name and email');
       return false;
     }
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(billingInfo.email)) {
       toast.error('Please enter a valid email address');
       return false;
     }
 
-    // Validate payment info
-    if (paymentInfo.paymentMethod === 'credit_card') {
+    if (paymentInfo.paymentMethod === 'CreditCard') {
       if (!paymentInfo.cardNumber || !paymentInfo.cardName || !paymentInfo.expiryDate || !paymentInfo.cvv) {
         toast.error('Please fill in all payment information');
         return false;
       }
 
-      // Basic card number validation (remove spaces and check length)
       const cardNumber = paymentInfo.cardNumber.replace(/\s/g, '');
-      if (cardNumber.length < 13 || cardNumber.length > 19) {
+      if (cardNumber.length < 13) {
         toast.error('Please enter a valid card number');
-        return false;
-      }
-
-      // Expiry date validation
-      const [month, year] = paymentInfo.expiryDate.split('/');
-      const currentYear = new Date().getFullYear() % 100;
-      const currentMonth = new Date().getMonth() + 1;
-
-      if (!month || !year || parseInt(month) < 1 || parseInt(month) > 12) {
-        toast.error('Please enter a valid expiry date');
-        return false;
-      }
-
-      if (parseInt(year) < currentYear || (parseInt(year) === currentYear && parseInt(month) < currentMonth)) {
-        toast.error('Card has expired');
-        return false;
-      }
-
-      // CVV validation
-      if (paymentInfo.cvv.length < 3) {
-        toast.error('Please enter a valid CVV');
         return false;
       }
     }
 
     return true;
-  };
-
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => {
-      const price = item.price || item.course?.price || 0;
-      return total + price;
-    }, 0);
   };
 
   const handleSubmit = async (e) => {
@@ -145,56 +133,98 @@ const CheckoutPage = () => {
     setProcessingPayment(true);
 
     try {
-      // Prepare order data
-      const orderData = {
-        billingInfo,
-        paymentInfo: {
-          ...paymentInfo,
-          // Remove sensitive data before sending (in production, use payment gateway tokens)
-          cardNumber: paymentInfo.cardNumber.slice(-4), // Only last 4 digits
-          cvv: undefined // Never send CVV to backend
+      const courseIds = cartItems.map(item => item.courseId || item.id);
+
+      // Create checkout DTO matching backend expectations
+      const checkoutDto = {
+        courseIds: courseIds,
+        totalAmount: parseFloat(total.toFixed(2)),
+        currency: 'L.E',
+        billingInfo: {
+          fullName: user?.firstName ? `${user.firstName} ${user.lastName}`.trim() : '',
+          email: user?.email || '',
+          phone: billingInfo.phone,
+          address: billingInfo.address,
+          city: billingInfo.city,
+          state: 'cairo',
+          zipCode: '12111',
+          country: billingInfo.country
         },
-        courseIds: cart.map(item => item.courseId || item.id),
-        totalAmount: calculateTotal(),
-        currency: 'USD'
+        paymentInfo: {
+          paymentMethod: paymentInfo.paymentMethod,
+          cardNumber: paymentInfo.cardNumber.replace(/\s/g, ''),
+          cardName: paymentInfo.cardName,
+          expiryDate: paymentInfo.expiryDate,
+          //paymentMethod: 'CreditCard',
+          Cvv: paymentInfo.cvv
+        }
       };
 
-      // Process checkout
-      const response = await orderService.checkout(orderData);
+      console.log('Submitting checkout:', checkoutDto);
 
-      // Clear cart on success
-      await cartService.clearCart();
+      // Call checkout endpoint
+      const response = await orderService.checkout(checkoutDto);
+
+      console.log('Checkout successful:', response.data);
+
+      // Clear cart after successful payment
+      try {
+        await cartService.clearCart();
+      } catch (err) {
+        console.warn('Could not clear cart from backend:', err);
+      }
+      
+      // Clear local cart state
       setCart([]);
+      localStorage.removeItem('cart');
 
       toast.success('Payment successful! Redirecting...');
-      
-      // Redirect to success page
+
+      // Redirect to success page with order details
       setTimeout(() => {
-        navigate('/payment-success', { 
-          state: { 
-            orderId: response.data.orderId || response.data.id,
-            orderDetails: response.data 
-          } 
+        navigate('/payment-success', {
+          state: {
+            orderId: response.data.orderId,
+            transactionId: response.data.transactionId,
+            amount: total,
+            subtotal: subtotal,
+            tax: tax,
+            courses: cartItems.length,
+            email: billingInfo.email,
+            fullName: billingInfo.fullName,
+            courseIds: courseIds
+          }
         });
       }, 1500);
 
     } catch (error) {
       console.error('Checkout error:', error);
-      
-      if (error.response?.status === 400) {
-        toast.error(error.response.data.message || 'Invalid payment information');
-      } else if (error.response?.status === 402) {
-        toast.error('Payment declined. Please check your payment details.');
+      console.error('Error response:', error.response?.data);
+
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const errorMessage = Object.values(errors).flat().join(', ');
+        toast.error('Validation error: ' + errorMessage);
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
       } else {
-        toast.error('Payment failed. Please try again.');
+        toast.error('Payment processing failed. Please try again.');
       }
     } finally {
       setProcessingPayment(false);
     }
   };
 
-  if (loading) {
-    return <LoadingSpinner fullScreen />;
+  if (cartItems.length === 0) {
+    return (
+      <div className="checkout-page">
+        <Container>
+          <div className="text-center py-5">
+            <p className="text-muted">Your cart is empty</p>
+          </div>
+        </Container>
+      </div>
+    );
   }
 
   return (
@@ -229,6 +259,7 @@ const CheckoutPage = () => {
                             value={billingInfo.fullName}
                             onChange={handleBillingChange}
                             required
+                            placeholder="Your full name"
                           />
                         </Form.Group>
                       </Col>
@@ -241,22 +272,23 @@ const CheckoutPage = () => {
                             value={billingInfo.email}
                             onChange={handleBillingChange}
                             required
+                            placeholder="your@email.com"
                           />
                         </Form.Group>
                       </Col>
-                      <Col md={6}>
+                      <Col md={12}>
                         <Form.Group>
-                          <Form.Label>Phone Number *</Form.Label>
+                          <Form.Label>Phone Number</Form.Label>
                           <Form.Control
                             type="tel"
                             name="phone"
                             value={billingInfo.phone}
                             onChange={handleBillingChange}
-                            required
+                            placeholder="(555) 123-4567"
                           />
                         </Form.Group>
                       </Col>
-                      <Col md={6}>
+                      <Col md={12}>
                         <Form.Group>
                           <Form.Label>Address</Form.Label>
                           <Form.Control
@@ -264,6 +296,7 @@ const CheckoutPage = () => {
                             name="address"
                             value={billingInfo.address}
                             onChange={handleBillingChange}
+                            placeholder="123 Main Street"
                           />
                         </Form.Group>
                       </Col>
@@ -275,28 +308,7 @@ const CheckoutPage = () => {
                             name="city"
                             value={billingInfo.city}
                             onChange={handleBillingChange}
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group>
-                          <Form.Label>State/Province</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="state"
-                            value={billingInfo.state}
-                            onChange={handleBillingChange}
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group>
-                          <Form.Label>ZIP/Postal Code</Form.Label>
-                          <Form.Control
-                            type="text"
-                            name="zipCode"
-                            value={billingInfo.zipCode}
-                            onChange={handleBillingChange}
+                            placeholder="New York"
                           />
                         </Form.Group>
                       </Col>
@@ -322,115 +334,73 @@ const CheckoutPage = () => {
                   </Card.Body>
                 </Card>
 
-                {/* Payment Method */}
+                {/* Payment Information */}
                 <Card className="checkout-card">
                   <Card.Body>
                     <h3 className="section-title">
-                      <FiCreditCard /> Payment Method
+                      <FiCreditCard /> Payment Information
                     </h3>
+                    <p className="text-muted small mb-3">
+                      No card validation required. Enter any details to proceed.
+                    </p>
 
-                    {/* Payment Method Selection */}
-                    <div className="payment-methods mb-4">
-                      <Form.Check
-                        type="radio"
-                        id="credit_card"
-                        name="paymentMethod"
-                        label={
-                          <div className="payment-option">
-                            <FiCreditCard /> Credit/Debit Card
-                          </div>
-                        }
-                        value="credit_card"
-                        checked={paymentInfo.paymentMethod === 'credit_card'}
-                        onChange={handlePaymentChange}
-                      />
-                      <Form.Check
-                        type="radio"
-                        id="paypal"
-                        name="paymentMethod"
-                        label={
-                          <div className="payment-option">
-                            💳 PayPal
-                          </div>
-                        }
-                        value="paypal"
-                        checked={paymentInfo.paymentMethod === 'paypal'}
-                        onChange={handlePaymentChange}
-                      />
-                    </div>
-
-                    {/* Credit Card Form */}
-                    {paymentInfo.paymentMethod === 'credit_card' && (
-                      <Row className="g-3">
-                        <Col md={12}>
-                          <Form.Group>
-                            <Form.Label>Card Number *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              name="cardNumber"
-                              placeholder="1234 5678 9012 3456"
-                              value={paymentInfo.cardNumber}
-                              onChange={handlePaymentChange}
-                              maxLength="19"
-                              required
-                            />
-                            <div className="card-logos mt-2">
-                              <img src="https://img.icons8.com/color/48/visa.png" alt="Visa" width="40" />
-                              <img src="https://img.icons8.com/color/48/mastercard.png" alt="Mastercard" width="40" />
-                              <img src="https://img.icons8.com/color/48/amex.png" alt="Amex" width="40" />
-                            </div>
-                          </Form.Group>
-                        </Col>
-                        <Col md={12}>
-                          <Form.Group>
-                            <Form.Label>Cardholder Name *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              name="cardName"
-                              placeholder="John Doe"
-                              value={paymentInfo.cardName}
-                              onChange={handlePaymentChange}
-                              required
-                            />
-                          </Form.Group>
-                        </Col>
-                        <Col md={6}>
-                          <Form.Group>
-                            <Form.Label>Expiry Date *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              name="expiryDate"
-                              placeholder="MM/YY"
-                              value={paymentInfo.expiryDate}
-                              onChange={handlePaymentChange}
-                              maxLength="5"
-                              required
-                            />
-                          </Form.Group>
-                        </Col>
-                        <Col md={6}>
-                          <Form.Group>
-                            <Form.Label>CVV *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              name="cvv"
-                              placeholder="123"
-                              value={paymentInfo.cvv}
-                              onChange={handlePaymentChange}
-                              maxLength="4"
-                              required
-                            />
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                    )}
-
-                    {/* PayPal Notice */}
-                    {paymentInfo.paymentMethod === 'paypal' && (
-                      <div className="paypal-notice">
-                        <p>You will be redirected to PayPal to complete your purchase.</p>
-                      </div>
-                    )}
+                    <Row className="g-3">
+                      <Col md={12}>
+                        <Form.Group>
+                          <Form.Label>Card Number *</Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="cardNumber"
+                            placeholder="1234 5678 9012 3456"
+                            value={paymentInfo.cardNumber}
+                            onChange={handlePaymentChange}
+                            maxLength="19"
+                            required
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={12}>
+                        <Form.Group>
+                          <Form.Label>Cardholder Name *</Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="cardName"
+                            placeholder="John Doe"
+                            value={paymentInfo.cardName}
+                            onChange={handlePaymentChange}
+                            required
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group>
+                          <Form.Label>Expiry Date *</Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="expiryDate"
+                            placeholder="MM/YY"
+                            value={paymentInfo.expiryDate}
+                            onChange={handlePaymentChange}
+                            maxLength="5"
+                            required
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group>
+                          <Form.Label>CVV *</Form.Label>
+                          <Form.Control
+                            type="text"
+                            name="cvv"
+                            placeholder="123"
+                            value={paymentInfo.cvv}
+                            onChange={handlePaymentChange}
+                            maxLength="4"
+                            required
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
 
                     <div className="security-notice mt-4">
                       <FiLock /> Your payment information is encrypted and secure
@@ -447,17 +417,18 @@ const CheckoutPage = () => {
 
                     {/* Cart Items */}
                     <div className="summary-items">
-                      {cart.map((item) => {
+                      {cartItems.map((item) => {
                         const course = item.course || item;
                         const price = item.price || course.price || 0;
-                        const title = course.title || item.title;
+                        const title = course.title || course.name || item.title || 'Course';
+                        const key = item.courseId || item.id;
 
                         return (
-                          <div key={item.id || item.courseId} className="summary-item">
+                          <div key={key} className="summary-item">
                             <div className="item-details">
                               <h6>{title}</h6>
                             </div>
-                            <span className="item-price">${price.toFixed(2)}</span>
+                            <span className="item-price">${parseFloat(price).toFixed(2)}</span>
                           </div>
                         );
                       })}
@@ -469,21 +440,17 @@ const CheckoutPage = () => {
                     <div className="price-breakdown">
                       <div className="price-row">
                         <span>Subtotal</span>
-                        <span>${calculateTotal().toFixed(2)}</span>
+                        <span>${subtotal.toFixed(2)}</span>
                       </div>
-                      <div className="price-row">
-                        <span>Tax</span>
-                        <span>$0.00</span>
-                      </div>
-                      <div className="price-row">
-                        <span>Discount</span>
-                        <span className="text-success">-$0.00</span>
+                      <div className="price-row tax-row">
+                        <span>Tax (15%)</span>
+                        <span className="tax-amount">${tax.toFixed(2)}</span>
                       </div>
                       <hr />
                       <div className="price-row total-row">
                         <strong>Total</strong>
                         <strong className="total-price">
-                          ${calculateTotal().toFixed(2)}
+                          ${total.toFixed(2)}
                         </strong>
                       </div>
                     </div>
@@ -494,15 +461,15 @@ const CheckoutPage = () => {
                       variant="primary"
                       size="lg"
                       className="w-100 mt-4"
-                      disabled={processingPayment || cart.length === 0}
+                      disabled={processingPayment || cartItems.length === 0}
                     >
                       {processingPayment ? (
                         <>
-                          <LoadingSpinner size="sm" /> Processing...
+                          <LoadingSpinner size="sm" /> Processing Payment...
                         </>
                       ) : (
                         <>
-                          <FiLock /> Complete Purchase
+                          <FiLock /> Complete Purchase - ${total.toFixed(2)}
                         </>
                       )}
                     </Button>

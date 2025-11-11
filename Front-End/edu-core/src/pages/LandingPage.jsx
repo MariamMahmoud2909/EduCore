@@ -9,7 +9,7 @@ import CategoryCard from '../components/shared/CategoryCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { courseService, instructorService, categoryService, dashboardService } from '../services/api';
 import './LandingPage.css';
-
+const BASE_URL = "https://mariam2909-001-site1.anytempurl.com";
 const LandingPage = () => {
   const [stats, setStats] = useState({});
   const [topCourses, setTopCourses] = useState([]);
@@ -26,7 +26,7 @@ const LandingPage = () => {
       role: 'Web Developer',
       image: 'https://ui-avatars.com/api/?name=Sarah+Johnson&size=100&background=FF6B6B&color=fff',
       rating: 5,
-      review: 'ByWay transformed my career! The courses are well-structured and the instructors are incredibly knowledgeable. Highly recommended!',
+      review: 'EduCore transformed my career! The courses are well-structured and the instructors are incredibly knowledgeable. Highly recommended!',
       course: 'Full Stack Development'
     },
     {
@@ -109,10 +109,10 @@ const LandingPage = () => {
               >
                 <h1 className="hero-title">
                   Unlock Your Potential with{' '}
-                  <span className="gradient-text">ByWay</span>
+                  <span className="gradient-text">EduCore</span>
                 </h1>
                 <p className="hero-description">
-                  Welcome to ByWay, where learning knows no bounds. We believe that
+                  Welcome to EduCore, where learning knows no bounds. We believe that
                   education is the key to personal and professional growth, and we're
                   here to guide you on your journey to success.
                 </p>
@@ -298,7 +298,7 @@ const LandingPage = () => {
           </div>
 
           <Row className="g-4">
-            {topCourses.slice(0, 6).map((course, index) => (
+            {topCourses.slice(2, 9).map((course, index) => (
               <Col lg={4} md={6} key={course.id}>
                 <CourseCard course={course} delay={index * 0.1} />
               </Col>
@@ -334,9 +334,14 @@ const LandingPage = () => {
                 >
                   <div className="instructor-image">
                     <img 
-                      src={instructor.image || `https://ui-avatars.com/api/?name=${instructor.firstName}+${instructor.lastName}&size=200&background=1E3A8A&color=fff`} 
+                      src={`${BASE_URL}${instructor.image}`}
                       alt={`${instructor.firstName} ${instructor.lastName}`}
                     />
+                    {/* <img 
+                    src={`${BASE_URL}/assets/images/instructors/${instructor.image}`}
+                      //src={instructor.image || `https://ui-avatars.com/api/?name=${instructor.firstName}+${instructor.lastName}&size=200&background=1E3A8A&color=fff`} 
+                      alt={`${instructor.firstName} ${instructor.lastName}`}
+                    /> */}
                   </div>
                   <div className="instructor-info">
                     <h3 className="instructor-name">{instructor.firstName} {instructor.lastName}</h3>
@@ -362,7 +367,7 @@ const LandingPage = () => {
           >
             <h2 className="section-title">What Our Students Say</h2>
             <p className="section-subtitle">
-              Join thousands of satisfied learners who transformed their careers with ByWay
+              Join thousands of satisfied learners who transformed their careers with EduCore
             </p>
           </motion.div>
 
@@ -458,7 +463,7 @@ const LandingPage = () => {
             <p className="cta-description">
               Join thousands of students learning new skills and advancing their careers
             </p>
-            <Link to="/register" className="btn btn-secondary btn-lg">
+            <Link to="/courses" className="btn btn-secondary btn-lg">
               Get Started Now <FiArrowRight />
             </Link>
           </motion.div>
@@ -473,362 +478,15 @@ const getJobTitleName = (jobTitle) => {
     1: 'Fullstack Developer',
     2: 'Backend Developer',
     3: 'Frontend Developer',
-    4: 'UX/UI Designer'
+    4: 'UX/UI Designer',
+    5: 'AiEngineer',
+    6: 'DataScientist',
+    7: 'MobileDeveloper',
+    8: 'MarketingSpecialist',
+    9: 'CloudEngineer',
+    10:'SecurityAnalyst'
   };
   return titles[jobTitle] || 'Instructor';
 };
 
 export default LandingPage;
-// import React, { useState, useEffect } from 'react';
-// import { Link } from 'react-router-dom';
-// import { motion } from 'framer-motion';
-// import CountUp from 'react-countup';
-// import { Container, Row, Col } from 'react-bootstrap';
-// import { FiArrowRight, FiPlay, FiBook, FiUsers, FiAward } from 'react-icons/fi';
-// import CourseCard from '../components/shared/CourseCard';
-// import CategoryCard from '../components/shared/CategoryCard';
-// import LoadingSpinner from '../components/shared/LoadingSpinner';
-// import { courseService, instructorService, categoryService, dashboardService } from '../services/api';
-// import './LandingPage.css';
-
-// const LandingPage = () => {
-//   const [stats, setStats] = useState({});
-//   const [topCourses, setTopCourses] = useState([]);
-//   const [topInstructors, setTopInstructors] = useState([]);
-//   const [topCategories, setTopCategories] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [startCounting, setStartCounting] = useState(false);
-
-//   useEffect(() => {
-//     fetchLandingData();
-    
-//     // Start counting animation after a short delay
-//     const timer = setTimeout(() => {
-//       setStartCounting(true);
-//     }, 500);
-    
-//     return () => clearTimeout(timer);
-//   }, []);
-
-//   const fetchLandingData = async () => {
-//     try {
-//       const [statsRes, coursesRes, instructorsRes, categoriesRes] = await Promise.all([
-//         dashboardService.getStats().catch(err => ({ data: {} })),
-//       courseService.getTopCourses().catch(err => ({ data: [] })),
-//       instructorService.getTopInstructors().catch(err => ({ data: [] })),
-//       categoryService.getTopCategories().catch(err => ({ data: [] }))
-//       ]);
-      
-//       setStats(statsRes.data || {});
-//     setTopCourses(coursesRes.data || []);
-//     setTopInstructors(instructorsRes.data || []);
-//     setTopCategories(categoriesRes.data || []);
-//     } catch (error) {
-//       console.error('Error fetching landing data:', error);
-//       setStats({});
-//     setTopCourses([]);
-//     setTopInstructors([]);
-//     setTopCategories([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   if (loading) return <LoadingSpinner fullScreen />;
-
-//   return (
-//     <div className="landing-page">
-//       {/* Hero Section */}
-//       <section className="hero-section">
-//         <Container>
-//           <Row className="align-items-center">
-//             <Col lg={6}>
-//               <motion.div
-//                 initial={{ opacity: 0, x: -50 }}
-//                 animate={{ opacity: 1, x: 0 }}
-//                 transition={{ duration: 0.8 }}
-//               >
-//                 <h1 className="hero-title">
-//                   Unlock Your Potential with{' '}
-//                   <span className="gradient-text">ByWay</span>
-//                 </h1>
-//                 <p className="hero-description">
-//                   Welcome to ByWay, where learning knows no bounds. We believe that
-//                   education is the key to personal and professional growth, and we're
-//                   here to guide you on your journey to success.
-//                 </p>
-//                 <div className="hero-buttons">
-//                   <Link to="/courses" className="btn btn-primary btn-lg">
-//                     Start Learning <FiArrowRight />
-//                   </Link>
-//                   <button className="btn btn-outline btn-lg">
-//                     <FiPlay /> Watch Demo
-//                   </button>
-//                 </div>
-//               </motion.div>
-//             </Col>
-
-//             <Col lg={6}>
-//               <motion.div 
-//                 className="hero-image"
-//                 initial={{ opacity: 0, x: 50 }}
-//                 animate={{ opacity: 1, x: 0 }}
-//                 transition={{ duration: 0.8, delay: 0.2 }}
-//               >
-//                 <img 
-//                   src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop" 
-//                   alt="Students learning"
-//                 />
-                
-//                 {/* Floating Stats Cards with CountUp */}
-//                 <motion.div 
-//                   className="floating-card card-1"
-//                   animate={{ y: [0, -10, 0] }}
-//                   transition={{ duration: 3, repeat: Infinity }}
-//                 >
-//                   <FiBook className="card-icon" />
-//                   <div>
-//                     <p className="card-number">
-//                       {startCounting && (
-//                         // <CountUp end={stats.coursesCount || 50} duration={2} suffix="+" />
-//                       <CountUp end={50} duration={2} suffix="+" />
-//                       )}
-//                     </p>
-//                     <p className="card-label">Courses</p>
-//                   </div>
-//                 </motion.div>
-
-//                 <motion.div 
-//                   className="floating-card card-2"
-//                   animate={{ y: [0, 10, 0] }}
-//                   transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
-//                 >
-//                   <FiUsers className="card-icon" />
-//                   <div>
-//                     <p className="card-number">
-//                       {startCounting && (
-//                         // <CountUp end={stats.studentsCount || 5000} duration={2} suffix="+" />
-//                       <CountUp end={5000} duration={2} suffix="+" />
-//                       )}
-//                     </p>
-//                     <p className="card-label">Students</p>
-//                   </div>
-//                 </motion.div>
-//               </motion.div>
-//             </Col>
-//           </Row>
-//         </Container>
-//       </section>
-
-//       {/* Stats Section with CountUp Animation */}
-//       <section className="stats-section">
-//         <Container>
-//           <Row className="g-4">
-//             <Col md={6} lg={3}>
-//               <motion.div 
-//                 className="stat-card"
-//                 initial={{ opacity: 0, y: 30 }}
-//                 whileInView={{ opacity: 1, y: 0 }}
-//                 viewport={{ once: true }}
-//                 transition={{ duration: 0.6 }}
-//               >
-//                 <div className="stat-icon" style={{ background: '#DBEAFE' }}>
-//                   <FiBook size={32} color="#1E3A8A" />
-//                 </div>
-//                 <h3 className="stat-number">
-//                   {startCounting && (
-//                     // <CountUp end={stats.coursesCount || 50} duration={2.5} suffix="+" />
-//                   <CountUp end={50} duration={2.5} suffix="+" />
-//                   )}
-//                 </h3>
-//                 <p className="stat-label">Online Courses</p>
-//               </motion.div>
-//             </Col>
-
-//             <Col md={6} lg={3}>
-//               <motion.div 
-//                 className="stat-card"
-//                 initial={{ opacity: 0, y: 30 }}
-//                 whileInView={{ opacity: 1, y: 0 }}
-//                 viewport={{ once: true }}
-//                 transition={{ duration: 0.6, delay: 0.1 }}
-//               >
-//                 <div className="stat-icon" style={{ background: '#FFEDD5' }}>
-//                   <FiUsers size={32} color="#F97316" />
-//                 </div>
-//                 <h3 className="stat-number">
-//                   {startCounting && (
-//                     // <CountUp end={stats.instructorsCount || 20} duration={2.5} suffix="+" />
-//                  <CountUp end={200} duration={2.5} suffix="+" />
-//                   )}
-//                 </h3>
-//                 <p className="stat-label">Expert Instructors</p>
-//               </motion.div>
-//             </Col>
-
-//             <Col md={6} lg={3}>
-//               <motion.div 
-//                 className="stat-card"
-//                 initial={{ opacity: 0, y: 30 }}
-//                 whileInView={{ opacity: 1, y: 0 }}
-//                 viewport={{ once: true }}
-//                 transition={{ duration: 0.6, delay: 0.2 }}
-//               >
-//                 <div className="stat-icon" style={{ background: '#D1FAE5' }}>
-//                   <FiAward size={32} color="#10B981" />
-//                 </div>
-//                 <h3 className="stat-number">
-//                   {startCounting && (
-//                     // <CountUp end={stats.studentsCount || 5000} duration={2.5} suffix="+" />
-//                     <CountUp end={5000} duration={2.5} suffix="+" />
-//                   )}
-//                 </h3>
-//                 <p className="stat-label">Active Students</p>
-//               </motion.div>
-//             </Col>
-
-//             <Col md={6} lg={3}>
-//               <motion.div 
-//                 className="stat-card"
-//                 initial={{ opacity: 0, y: 30 }}
-//                 whileInView={{ opacity: 1, y: 0 }}
-//                 viewport={{ once: true }}
-//                 transition={{ duration: 0.6, delay: 0.3 }}
-//               >
-//                 <div className="stat-icon" style={{ background: '#FEE2E2' }}>
-//                   <FiBook size={32} color="#EF4444" />
-//                 </div>
-//                 <h3 className="stat-number">
-//                   {startCounting && (
-//                     // <CountUp end={stats.categoriesCount || 0} duration={2.5} suffix="+" />
-//                   <CountUp end={20} duration={2.5} suffix="+" />
-//                   )}
-//                 </h3>
-//                 <p className="stat-label">Categories</p>
-//               </motion.div>
-//             </Col>
-//           </Row>
-//         </Container>
-//       </section>
-
-//       {/* Top Categories */}
-//       <section className="categories-section">
-//         <Container>
-//           <div className="section-header">
-//             <h2 className="section-title">Top Categories</h2>
-//             <Link to="/courses" className="section-link">
-//               View All <FiArrowRight />
-//             </Link>
-//           </div>
-
-//         <Row className="g-4">
-//           {topCategories.map((category, index) => (
-//             <Col lg={3} md={6} key={category.id}>
-//               <CategoryCard 
-//                 category={category} 
-//                 delay={index * 0.1}
-//               />
-//             </Col>
-//           ))}
-//         </Row>
-//         </Container>
-//       </section>
-
-//       {/* Top Courses */}
-//       <section className="courses-section">
-//         <Container>
-//           <div className="section-header">
-//             <h2 className="section-title">Featured Courses</h2>
-//             <Link to="/courses" className="section-link">
-//               View All <FiArrowRight />
-//             </Link>
-//           </div>
-
-//           <Row className="g-4">
-//             {topCourses.slice(0, 6).map((course, index) => (
-//               <Col lg={4} md={6} key={course.id}>
-//                 <CourseCard course={course} delay={index * 0.1} />
-//               </Col>
-//             ))}
-//           </Row>
-
-//           <div className="text-center mt-5">
-//             <Link to="/courses" className="btn btn-primary btn-lg">
-//               Explore More Courses <FiArrowRight />
-//             </Link>
-//           </div>
-//         </Container>
-//       </section>
-
-//       {/* Top Instructors */}
-//       <section className="instructors-section">
-//         <Container>
-//           <div className="section-header">
-//             <h2 className="section-title">Meet Our Instructors</h2>
-//             <p className="section-subtitle">Learn from industry experts</p>
-//           </div>
-
-//           <Row className="g-4">
-//             {topInstructors.map((instructor, index) => (
-//               <Col lg={3} md={6} key={instructor.id}>
-//                 <motion.div
-//                   className="instructor-card"
-//                   initial={{ opacity: 0, y: 30 }}
-//                   whileInView={{ opacity: 1, y: 0 }}
-//                   viewport={{ once: true }}
-//                   transition={{ duration: 0.6, delay: index * 0.1 }}
-//                   whileHover={{ y: -8 }}
-//                 >
-//                   <div className="instructor-image">
-//                     <img 
-//                       src={instructor.image || `https://ui-avatars.com/api/?name=${instructor.firstName}+${instructor.lastName}&size=200&background=1E3A8A&color=fff`} 
-//                       alt={`${instructor.firstName} ${instructor.lastName}`}
-//                     />
-//                   </div>
-//                   <div className="instructor-info">
-//                     <h3 className="instructor-name">{instructor.firstName} {instructor.lastName}</h3>
-//                     <p className="instructor-title">{getJobTitleName(instructor.jobTitle)}</p>
-//                     <p className="instructor-bio">{instructor.bio?.substring(0, 80)}...</p>
-//                   </div>
-//                 </motion.div>
-//               </Col>
-//             ))}
-//           </Row>
-//         </Container>
-//       </section>
-
-//       {/* CTA Section */}
-//       <section className="cta-section">
-//         <Container>
-//           <motion.div 
-//             className="cta-content"
-//             initial={{ opacity: 0, y: 30 }}
-//             whileInView={{ opacity: 1, y: 0 }}
-//             viewport={{ once: true }}
-//             transition={{ duration: 0.8 }}
-//           >
-//             <h2 className="cta-title">Start Your Learning Journey Today</h2>
-//             <p className="cta-description">
-//               Join thousands of students learning new skills and advancing their careers
-//             </p>
-//             <Link to="/register" className="btn btn-secondary btn-lg">
-//               Get Started Now <FiArrowRight />
-//             </Link>
-//           </motion.div>
-//         </Container>
-//       </section>
-//     </div>
-//   );
-// };
-
-// const getJobTitleName = (jobTitle) => {
-//   const titles = {
-//     1: 'Fullstack Developer',
-//     2: 'Backend Developer',
-//     3: 'Frontend Developer',
-//     4: 'UX/UI Designer'
-//   };
-//   return titles[jobTitle] || 'Instructor';
-// };
-
-// export default LandingPage;

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { motion } from 'framer-motion';
 import { Container, Row, Col, Form, Button as BSButton } from 'react-bootstrap';
@@ -18,8 +18,34 @@ const LoginPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [, setUser] = useAtom(userAtom);
+  const [user, setUser] = useAtom(userAtom);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    
+    if (token && storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        
+        // Redirect based on role
+        if (userData.isAdmin) {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
+
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, [navigate, setUser]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,26 +56,62 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
+      console.log('Attempting login with:', formData);
       const response = await authService.login(formData);
       const userData = response.data;
       
+      console.log('Login response:', userData);
+      
+      // Store token and user data
       localStorage.setItem('token', userData.token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       
       toast.success('Login successful!');
-      navigate('/');
+      
+      // Check for redirect path from location state (if coming from protected route)
+      const from = location.state?.from?.pathname || '/';
+      
+      // Redirect based on user role
+      if (userData.isAdmin) {
+        console.log('User is admin, redirecting to admin dashboard');
+        navigate('/admin/dashboard', { replace: true });
+      } else if (userData.roles && userData.roles.includes('Instructor')) {
+        console.log('User is instructor, redirecting to instructor dashboard');
+        navigate('/instructor/dashboard', { replace: true });
+      } else {
+        console.log('User is regular user, redirecting to:', from);
+        navigate(from, { replace: true });
+      }
+      
     } catch (err) {
-      toast.error(err.response?.data || 'Login failed. Please check your credentials.');
+      console.error('Login error:', err);
+      const errorMessage = err.response?.data?.message || err.response?.data || 'Login failed. Please check your credentials.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSocialLogin = (provider) => {
-  const backendUrl = 'https://localhost:7128';
-  window.location.href = `${backendUrl}/api/auth/login/${provider}`;
-};
+    console.log(`Initiating ${provider} login`);
+    const backendUrl = 'https://mariam2909-001-site1.anytempurl.com';
+    
+    // Store the current location to redirect back after login
+    const currentPath = location.pathname;
+    localStorage.setItem('redirectAfterLogin', currentPath);
+    
+    window.location.href = `${backendUrl}/api/Auth/external-login/${provider}`;
+  };
+
+  // If already logged in, show loading while redirecting
+  if (user) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
+        <LoadingSpinner size="lg" text="Redirecting..." />
+      </div>
+    );
+  }
 
   return (
     <div className="auth-page">
@@ -73,6 +135,7 @@ const LoginPage = () => {
                       variant="outline-danger"
                       className="social-btn"
                       onClick={() => handleSocialLogin('Google')}
+                      disabled={loading}
                     >
                       <FaGoogle /> Continue with Google
                     </BSButton>
@@ -80,6 +143,7 @@ const LoginPage = () => {
                       variant="outline-primary"
                       className="social-btn"
                       onClick={() => handleSocialLogin('Facebook')}
+                      disabled={loading}
                     >
                       <FaFacebook /> Continue with Facebook
                     </BSButton>
@@ -87,6 +151,7 @@ const LoginPage = () => {
                       variant="outline-dark"
                       className="social-btn"
                       onClick={() => handleSocialLogin('GitHub')}
+                      disabled={loading}
                     >
                       <FaGithub /> Continue with GitHub
                     </BSButton>
@@ -108,6 +173,7 @@ const LoginPage = () => {
                           value={formData.email}
                           onChange={handleChange}
                           required
+                          disabled={loading}
                         />
                       </div>
                     </Form.Group>
@@ -123,11 +189,13 @@ const LoginPage = () => {
                           value={formData.password}
                           onChange={handleChange}
                           required
+                          disabled={loading}
                         />
                         <button
                           type="button"
                           className="password-toggle"
                           onClick={() => setShowPassword(!showPassword)}
+                          disabled={loading}
                         >
                           {showPassword ? <FiEyeOff /> : <FiEye />}
                         </button>
@@ -139,6 +207,7 @@ const LoginPage = () => {
                         type="checkbox"
                         label="Remember me"
                         className="checkbox-label"
+                        disabled={loading}
                       />
                       <Link to="/forgot-password" className="forgot-link">
                         Forgot Password?

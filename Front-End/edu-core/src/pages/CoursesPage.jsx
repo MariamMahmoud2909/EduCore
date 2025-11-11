@@ -4,7 +4,7 @@ import { useAtom } from 'jotai';
 import { motion } from 'framer-motion';
 import { FiSearch, FiFilter } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import CourseCard from '../components/courses/CourseCard';
+import CourseCard from '../components/shared/CourseCard';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import Pagination from '../components/shared/Pagination';
 import { courseService, categoryService } from '../services/api';
@@ -148,9 +148,9 @@ const CoursesPage = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="search-input"
                 />
-                <Button type="submit" variant="primary">
+                {/* <Button type="submit" variant="primary">
                   Search
-                </Button>
+                </Button> */}
               </div>
             </Form>
           </motion.div>

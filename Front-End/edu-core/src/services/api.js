@@ -43,8 +43,11 @@ api.interceptors.response.use(
 
 // Auth Services
 export const authService = {
-  login: (credentials) => api.post('/Auth/login', credentials),
-  register: (userData) => api.post('/Auth/register', userData),
+  login: (data) => api.post('/Auth/login', data),
+  register: (data) => api.post('/Auth/register', data),
+  exchangeOAuthCode: (data) => api.post('/Auth/external-callback', data),
+  forgotPassword: (email) => api.post('/Auth/forgot-password', { email }),
+  resetPassword: (data) => api.post('/Auth/reset-password', data),
   //logout: () => api.post('/auth/logout'),
   getCurrentUser: () => api.get('/Auth/me'),
   logout: () => {
@@ -52,7 +55,7 @@ export const authService = {
     localStorage.removeItem('user');
     window.location.href = '/';},
   externalLogin: (provider) => api.get(`/Auth/external-login/${provider}`),
-  externalCallback: () => api.get('/Auth/external-callback'),
+  //externalCallback: () => api.get('/Auth/external-callback'),
   getExternalProviders: () => api.get('/Auth/external-providers'),
 };
 
@@ -78,7 +81,7 @@ export const courseService = {
   getCourses: (params) => api.get('/Courses', { params }),
   getCourse: (id) => api.get(`/Courses/${id}`),
   getTopCourses: () => api.get('/Courses/TopCourses'),
-  getFeaturedCourses: () => api.get('/Courses/featured'),
+  getFeaturedCourses: () => api.get('/Courses'),
   getSimilarCourses: (id) => api.get(`/Courses/${id}/similar`),
   searchCourses: (query) => api.get('/Courses/search', { params: { q: query } }),
   createCourse: (data) => api.post('/Courses', data),

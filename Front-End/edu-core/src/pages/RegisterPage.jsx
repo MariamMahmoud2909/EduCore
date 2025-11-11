@@ -53,7 +53,7 @@ const RegisterPage = () => {
       setUser(userData);
       
       // Email is sent automatically by backend (Welcome email)
-      toast.success('🎉 Account created successfully! Welcome to ByWay!');
+      toast.success('🎉 Account created successfully! Welcome to EduCore!');
       
       // Redirect to home page
       navigate('/');

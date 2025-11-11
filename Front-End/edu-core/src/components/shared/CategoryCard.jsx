@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import './CategoryCard.css';
-
+const BASE_URL = "https://mariam2909-001-site1.anytempurl.com";
 const CategoryCard = ({ category, delay = 0 }) => {
   const navigate = useNavigate();
 
@@ -17,7 +17,9 @@ const CategoryCard = ({ category, delay = 0 }) => {
     >
       <div className="category-image">
         <img 
-          src={category.image || `https://via.placeholder.com/300x200/1E3A8A/FFFFFF?text=${category.name}`} 
+            src={`${BASE_URL}${category.image}`}
+            //src={`${BASE_URL}/assets/images/categories/${category.image}`}
+          //src={category.image || `https://via.placeholder.com/300x200/1E3A8A/FFFFFF?text=${category.name}`} 
           alt={category.name}
         />
       </div>
